@@ -781,6 +781,15 @@
     <div id="zakat-body"></div>
   </section>
 
+  <!-- DASHBOARD (sub) -->
+  <section class="view" id="v-dashboard" data-view="dashboard">
+    <div class="vhead">
+      <button class="back" onclick="switchView('more')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></button>
+      <div><h1>لوحة المعلومات</h1><p>رسوم بيانية تفاعلية لوضعك المالي — كل رقم يوضح كيف حُسب</p></div>
+    </div>
+    <div id="dash-body"></div>
+  </section>
+
   <!-- PROVIDERS (sub) -->
   <section class="view" id="v-providers" data-view="providers">
     <div class="vhead">
@@ -806,8 +815,16 @@
     <div class="fld"><label>خصص من مدخراتك/استثمارك</label><div class="wrap"><input type="number" min="0" id="g-saved" value="0"><span class="sfx">ريال</span></div></div>
   </div>
   <div id="g-pool-hint" style="font-size:11px;color:var(--text-3);margin:-8px 0 14px;"></div>
-  <div class="fld"><label>تاريخ التحقيق</label><input type="month" id="g-date"></div>
-  <div class="fld"><label>كيف تبي توصل له؟</label>
+  <div class="fg">
+    <div class="fld"><label>تاريخ التحقيق</label><input type="month" id="g-date"></div>
+    <div class="fld"><label>الأولوية</label><select id="g-priority">
+      <option value="high">مرتفعة</option>
+      <option value="normal" selected>عادية</option>
+      <option value="low">منخفضة</option>
+    </select></div>
+  </div>
+  <div class="fld" style="margin-bottom:16px;">
+    <label>كيف تبي توصل له؟</label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
       <button type="button" class="tpl" id="pm-cash" onclick="setMode('cash')" style="align-items:center;text-align:center;">
         <div style="font-size:18px;">💎</div><h4 style="font-size:12.5px;">ادخار نقدي</h4><p style="font-size:10px;">بدون تكلفة</p></button>
@@ -816,6 +833,7 @@
     </div></div>
   <div id="g-preview" style="font-size:11.5px;color:var(--text-2);margin:2px 0 16px;line-height:1.6;"></div>
   <button class="btn btn-p btn-b" id="g-save">حفظ الهدف</button>
+  <button class="btn btn-g btn-b" id="g-pause-btn" style="margin-top:9px;display:none;" onclick="togglePauseGoal()">إيقاف الهدف مؤقتًا</button>
 </div></div>
 
 <div class="sheet-bg" id="sheet-bank"><div class="sheet"><div class="grab"></div>
@@ -1226,7 +1244,7 @@ const BOTTOM_NAV = [
   {id:'advisor', label:'المستشار', icon:'advisor'},
   {id:'more',    label:'المزيد',   icon:'grid'}
 ];
-const SUBVIEW_PARENT = {data:'more',projection:'more',zakat:'more',providers:'more'};
+const SUBVIEW_PARENT = {data:'more',projection:'more',zakat:'more',providers:'more',dashboard:'more'};
 
 /* الخدمات السريعة على الرئيسية — بلا تركيز على التمويل */
 const QUICK = [
@@ -1236,6 +1254,7 @@ const QUICK = [
   {id:'more',       label:'المزيد',     icon:'grid',   c:'#6B6680'}
 ];
 const MORE_TILES = [
+  {id:'dashboard',  label:'لوحة المعلومات', icon:'chart', c:'#A06BC4'},
   {id:'data',       label:'بياناتي المالية', icon:'data',   c:'#4FA396'},
   {id:'projection', label:'الحاسبة المستقبلية', icon:'projection', c:'#FF8F3C'},
   {id:'zakat',      label:'حاسبة الزكاة', icon:'zakat',  c:'#34D9A8'},
@@ -1318,7 +1337,7 @@ function switchView(id){
   window.scrollTo({top:0,behavior:'instant'});
   renderTopbar(id);
   const R={home:renderHome,account:renderAccount,goals:renderGoals,advisor:()=>renderChat(false),
-    more:renderMore,data:renderDataSummary,projection:renderProjection,zakat:renderZakat,providers:renderProviders};
+    more:renderMore,data:renderDataSummary,projection:renderProjection,zakat:renderZakat,providers:renderProviders,dashboard:renderDashboard};
   (R[id]||(()=>{}))();
 }
 
@@ -1345,6 +1364,16 @@ function renderXPCard(){
 }
 
 /* ---------- HOME ---------- */
+/* زر "حدد هدفك" يبقى ظاهرًا دائمًا — ولو ما فيه بيانات مالية بعد، يوجّه المستخدم لإكمالها أول برسالة محفّزة */
+function goSetGoal(){
+  if(!state.profile){
+    showToast('أكمل بياناتك المالية لنساعدك في بناء خطة ادخار واستثمار مناسبة لك.');
+    switchView('data');
+  } else {
+    switchView('goals');
+  }
+}
+
 function renderHome(){
   const c=calcProfile(state.profile);
   const bankTotal=bankTotals();
@@ -1373,7 +1402,7 @@ function renderHome(){
     </div>`;
 
   const quick=`<div class="qa-grid" id="tour-qa">${QUICK.map(q=>
-    `<button class="qa" onclick="switchView('${q.id}')"><span class="qa-ic" style="background:${q.c}">${iconTag(q.icon)}</span><span class="qa-lb">${q.label}</span></button>`
+    `<button class="qa" onclick="${q.id==='goals'?'goSetGoal()':`switchView('${q.id}')`}"><span class="qa-ic" style="background:${q.c}">${iconTag(q.icon)}</span><span class="qa-lb">${q.label}</span></button>`
   ).join('')}</div>`;
 
   let firstRun='';
@@ -1385,7 +1414,9 @@ function renderHome(){
       <div style="display:flex;gap:9px;justify-content:center;flex-wrap:wrap;">
         <button class="btn btn-p btn-sm" onclick="switchView('account')">${ICONS.link} ربط حساب</button>
         <button class="btn btn-s btn-sm" onclick="switchView('data')">${ICONS.data} إدخال يدوي</button>
-      </div></div></div>`;
+      </div>
+      <button class="btn btn-g btn-sm" style="margin-top:9px;" onclick="goSetGoal()">${ICONS.goals} حدد هدفك</button>
+    </div></div>`;
   }
 
   let nearestCard='';
@@ -1534,6 +1565,56 @@ function unallocatedPool(excludeId){
   return Math.max(0, totalPool()-allocatedTotal(excludeId));
 }
 
+/* إحصائيات كاملة لكل هدف — الوتيرة الفعلية، الموعد المتوقع، متقدم/متأخر عن الخطة */
+function goalStats(g){
+  const target=g.target||0, saved=g.alloc||g.saved||0;
+  const remaining=Math.max(0,target-saved);
+  const pct=clamp((saved/(target||1))*100,0,100);
+  const createdAt=g.createdAt||(g.history&&g.history[0]&&g.history[0].date)||null;
+  const elapsedMonths=createdAt?Math.max(1,monthsBetween(createdAt,new Date().toISOString().slice(0,10))):1;
+  const avgMonthly=saved>0?saved/elapsedMonths:0;
+
+  const targetMonths=Math.max(1,monthsFromNow(g.date));
+  const requiredMonthly=remaining/targetMonths;
+
+  let etaMonths=null, etaDate=null;
+  if(avgMonthly>0 && remaining>0){
+    etaMonths=Math.ceil(remaining/avgMonthly);
+    const d=new Date(); d.setMonth(d.getMonth()+etaMonths);
+    etaDate=d;
+  } else if(remaining<=0){ etaMonths=0; }
+
+  let daysLeft=null;
+  if(g.date){
+    const target_d=new Date(g.date+'-01');
+    const now=new Date();
+    daysLeft=Math.ceil((target_d-now)/(1000*60*60*24));
+  }
+
+  let paceStatus='unknown'; // ahead | behind | ontrack | unknown
+  if(etaMonths!==null && g.date){
+    if(etaMonths<=targetMonths) paceStatus='ahead';
+    else paceStatus='behind';
+  } else if(avgMonthly>=requiredMonthly && requiredMonthly>0){
+    paceStatus='ontrack';
+  }
+
+  return {target,saved,remaining,pct,avgMonthly,requiredMonthly,etaMonths,etaDate,daysLeft,paceStatus,targetMonths};
+}
+function monthsBetween(d1,d2){
+  const a=new Date(d1+(d1.length===7?'-01':'')), b=new Date(d2);
+  return Math.max(0,(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth()));
+}
+function fmtDuration(months){
+  if(months===null||months===undefined) return 'غير معروف';
+  if(months<=0) return 'تحقق الآن';
+  const y=Math.floor(months/12), m=months%12;
+  const parts=[];
+  if(y>0) parts.push(`${y} ${y===1?'سنة':'سنوات'}`);
+  if(m>0) parts.push(`${m} ${m===1?'شهر':'أشهر'}`);
+  return parts.join(' و') || 'أقل من شهر';
+}
+
 /* ---------- GOALS ---------- */
 function renderGoals(){
   const c=calcProfile(state.profile);
@@ -1563,21 +1644,46 @@ function renderGoals(){
     ${pct>100?`<div class="tip warn" style="margin-top:10px;">${ICONS.alert}<span>مجموع أهدافك يتجاوز فائضك الشهري — جرّب تمديد بعض المواعيد.</span></div>`:''}
   </div>`:`<div class="tip warn">${ICONS.bulb}<span>أدخل بياناتك المالية أول عشان نحسب واقعية أهدافك.</span></div>`;
 
+  const PRI_LABEL={high:'مرتفعة',normal:'عادية',low:'منخفضة'};
+  const PRI_COLOR={high:'var(--rose)',normal:'var(--amber)',low:'var(--text-3)'};
+
   const mine=state.goals.length?state.goals.map(g=>{
-    const need=goalMonthlyNeed(g), ps=clamp(((g.saved||0)/(g.target||1))*100,0,100), ok=feasible[g.id];
-    return `<div class="goal"><div class="goal-h"><div class="goal-ic" style="background:${g.bg};color:${g.color}">${iconTag(g.icon)}</div>
-      <div class="m"><h4>${g.title}</h4><span>الموعد ${g.date||'—'}</span></div>
+    const need=goalMonthlyNeed(g), gs=goalStats(g), ok=feasible[g.id], paused=g.status==='paused';
+    const paceHtml = gs.paceStatus==='ahead' ? `<span class="tag tag-ok">${ICONS.check} متقدم عن الخطة</span>`
+      : gs.paceStatus==='behind' ? `<span class="tag tag-no">${ICONS.alert} متأخر عن الخطة</span>`
+      : gs.paceStatus==='ontrack' ? `<span class="tag tag-ok">${ICONS.check} على الوتيرة الصحيحة</span>` : '';
+    const daysHtml = (gs.daysLeft!==null && gs.daysLeft>0 && !paused) ? `<span class="tag tag-n">${gs.daysLeft} يوم متبقي</span>` : '';
+
+    // اقتراح استثمار عند بلوغ نسب معينة من الادخار — حساب مستقل لا يتأثر بمحاكاة صفحة أخرى
+    let investSuggestion='';
+    if(!paused && [30,50,100].some(m=>gs.pct>=m) && state.profile){
+      const milestone = gs.pct>=100?100:gs.pct>=50?50:30;
+      const n=Math.max(1,gs.targetMonths), c=Math.max(0,gs.requiredMonthly);
+      const fvNoInvest = c*n; // ادخار بلا عائد
+      const iM=0.06/12; const fvWithInvest = iM>0 ? c*((Math.pow(1+iM,n)-1)/iM) : c*n;
+      const diff=Math.round(fvWithInvest-fvNoInvest);
+      investSuggestion=`<div class="tip" style="margin-top:10px;">${ICONS.bulb}<span>وصلت ${milestone}% من هدفك — فكّر تحوّل جزء من مدخراتك للاستثمار. بعائد افتراضي 6% سنويًا (تقدير غير مضمون)، ممكن تكسب ${fmt(Math.max(0,diff))} إضافية بنفس المدة. راجع "الحاسبة المستقبلية" للتفاصيل والافتراضات.</span></div>`;
+    }
+
+    return `<div class="goal" style="${paused?'opacity:.6;':''}"><div class="goal-h"><div class="goal-ic" style="background:${g.bg};color:${g.color}">${iconTag(g.icon)}</div>
+      <div class="m"><h4>${g.title} ${paused?'<span style="font-size:10px;color:var(--text-3);">(متوقف)</span>':''}</h4><span>الموعد ${g.date||'—'} · أولوية <span style="color:${PRI_COLOR[g.priority||'normal']}">${PRI_LABEL[g.priority||'normal']}</span></span></div>
       <div style="display:flex;gap:5px;"><button class="btn-i" style="width:32px;height:32px;" onclick="editGoal('${g.id}')">${ICONS.edit}</button>
       <button class="btn-i" style="width:32px;height:32px;" onclick="delGoal('${g.id}')">${ICONS.trash}</button></div></div>
       <div class="goal-g"><div><div class="l">المستهدف</div><div class="v">${fmt(g.target).replace(' ريال','')}</div></div>
       <div><div class="l">مخصَّص له</div><div class="v">${fmt(g.saved||0).replace(' ريال','')}</div></div>
-      <div><div class="l">شهريًا</div><div class="v">${fmt(need).replace(' ريال','')}</div></div></div>
-      <div class="track" style="margin-bottom:10px;"><div class="fill" style="width:${ps}%"></div></div>
+      <div><div class="l">المتبقي</div><div class="v">${fmt(gs.remaining).replace(' ريال','')}</div></div></div>
+      <div class="track" style="margin-bottom:10px;"><div class="fill" style="width:${gs.pct}%"></div></div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-top:-4px;margin-bottom:10px;">
-        <span class="num">${Math.round(ps)}% مكتمل</span></div>
+        <span class="num">${Math.round(gs.pct)}% مكتمل</span>
+        <span class="num">متوسطك الشهري: ${fmt(Math.round(gs.avgMonthly))}</span></div>
+      <div style="font-size:11px;color:var(--text-2);margin-bottom:10px;">الوصول المتوقع بوتيرتك الحالية: <b>${gs.etaMonths===0?'الآن':fmtDuration(gs.etaMonths)}</b></div>
       <div style="display:flex;gap:7px;flex-wrap:wrap;">
-        <span class="tag ${ok?'tag-ok':'tag-no'}">${ok?ICONS.check:''} ${ok?'على المسار':'يحتاج مراجعة'}</span>
-        <span class="tag tag-n">${g.mode==='finance'?'تقسيط':'ادخار'}</span></div>
+        <span class="tag ${ok?'tag-ok':'tag-no'}">${ok?ICONS.check:''} ${ok?'ضمن فائضك':'يحتاج مراجعة'}</span>
+        <span class="tag tag-n">${g.mode==='finance'?'تقسيط':'ادخار'}</span>
+        ${paceHtml}${daysHtml}
+      </div>
+      <button class="btn btn-g btn-sm btn-b" style="margin-top:10px;" onclick="quickTogglePause('${g.id}')">${paused?'إعادة تفعيل الهدف':'إيقاف مؤقت'}</button>
+      ${investSuggestion}
     </div>`;
   }).join(''):'';
 
@@ -1626,12 +1732,15 @@ function goalPreview(){
 }
 function openGoal(tpl,gid){
   document.getElementById('g-tpl').value=tpl||''; document.getElementById('g-id').value=gid||'';
+  const pauseBtn=document.getElementById('g-pause-btn');
   if(gid){
     const g=state.goals.find(x=>x.id===gid);
     document.getElementById('goal-title').textContent='تعديل الهدف';
     document.getElementById('g-name').value=g.title; document.getElementById('g-target').value=g.target;
     document.getElementById('g-saved').value=g.alloc||0; document.getElementById('g-date').value=g.date;
+    document.getElementById('g-priority').value=g.priority||'normal';
     setMode(g.mode||'cash');
+    if(pauseBtn){ pauseBtn.style.display='block'; pauseBtn.textContent=g.status==='paused'?'إعادة تفعيل الهدف':'إيقاف الهدف مؤقتًا'; }
   }else{
     const t=TEMPLATES.find(x=>x.id===tpl);
     let amt=t?t.amount:0;
@@ -1639,12 +1748,27 @@ function openGoal(tpl,gid){
     document.getElementById('goal-title').textContent=t?('إضافة: '+t.title):'هدف مخصص';
     document.getElementById('g-name').value=t?t.title:''; document.getElementById('g-target').value=amt||'';
     document.getElementById('g-saved').value=0; document.getElementById('g-date').value=defaultDate(t?t.months:12);
+    document.getElementById('g-priority').value='normal';
     setMode('cash');
+    if(pauseBtn) pauseBtn.style.display='none';
   }
   ['g-target','g-saved','g-date','g-name'].forEach(id=>{const e=document.getElementById(id);e.oninput=goalPreview;e.onchange=goalPreview;});
   goalPreview(); openSheet('sheet-goal');
 }
 function editGoal(id){openGoal(null,id);}
+async function quickTogglePause(id){
+  const g=state.goals.find(x=>x.id===id); if(!g)return;
+  g.status = g.status==='paused' ? 'active' : 'paused';
+  await sSet('fajr_goals',state.goals); renderGoals();
+  showToast(g.status==='paused'?'تم إيقاف الهدف مؤقتًا':'تم إعادة تفعيل الهدف');
+}
+async function togglePauseGoal(){
+  const gid=document.getElementById('g-id').value; if(!gid)return;
+  const g=state.goals.find(x=>x.id===gid); if(!g)return;
+  g.status = g.status==='paused' ? 'active' : 'paused';
+  await sSet('fajr_goals',state.goals); closeSheet('sheet-goal'); renderGoals();
+  showToast(g.status==='paused'?'تم إيقاف الهدف مؤقتًا':'تم إعادة تفعيل الهدف');
+}
 async function delGoal(id){
   state.goals=state.goals.filter(g=>g.id!==id); await sSet('fajr_goals',state.goals); renderGoals(); showToast('تم حذف الهدف');
 }
@@ -1653,19 +1777,194 @@ async function saveGoal(){
   const title=document.getElementById('g-name').value.trim()||'هدف';
   const target=parseFloat(document.getElementById('g-target').value)||0;
   const date=document.getElementById('g-date').value;
+  const priority=document.getElementById('g-priority').value||'normal';
   const avail=unallocatedPool(gid);
   const alloc=Math.min(avail, parseFloat(document.getElementById('g-saved').value)||0);
-  if(gid){const g=state.goals.find(x=>x.id===gid);Object.assign(g,{title,target,saved:alloc,alloc,date,mode:modalGoalMode});}
-  else{const t=TEMPLATES.find(x=>x.id===tpl)||{icon:'goals',color:'#FF6B4A',bg:'rgba(255,107,74,.14)'};
-    state.goals.push({id:'g_'+Date.now(),templateId:tpl||'custom',title,icon:t.icon,color:t.color,bg:t.bg,target,saved:alloc,alloc,date,mode:modalGoalMode});}
+  const today=new Date().toISOString().slice(0,10);
+  if(gid){
+    const g=state.goals.find(x=>x.id===gid);
+    Object.assign(g,{title,target,saved:alloc,alloc,date,mode:modalGoalMode,priority});
+    recordGoalSnapshot(g);
+  }else{
+    const t=TEMPLATES.find(x=>x.id===tpl)||{icon:'goals',color:'#FF6B4A',bg:'rgba(255,107,74,.14)'};
+    const g={id:'g_'+Date.now(),templateId:tpl||'custom',title,icon:t.icon,color:t.color,bg:t.bg,target,saved:alloc,alloc,date,mode:modalGoalMode,
+      priority,status:'active',createdAt:today,history:[{date:today,alloc}],celebrated:[]};
+    state.goals.push(g);
+  }
   await sSet('fajr_goals',state.goals); closeSheet('sheet-goal'); renderGoals(); showToast('تم حفظ الهدف');
+  checkMilestones();
+}
+
+/* لقطة تاريخية بسيطة لكل هدف — تُستخدم لحساب متوسط الوتيرة الشهرية ومقارنة الأسبوع/الشهر الماضي */
+function recordGoalSnapshot(g){
+  const today=new Date().toISOString().slice(0,10);
+  g.history = g.history || [{date:g.createdAt||today, alloc:0}];
+  const last = g.history[g.history.length-1];
+  if(!last || last.date!==today || last.alloc!==g.alloc){
+    g.history.push({date:today, alloc:g.alloc||0});
+    if(g.history.length>60) g.history=g.history.slice(-60);
+  }
+}
+
+/* ---------- احتفال عند بلوغ 25/50/75/100% ---------- */
+function checkMilestones(){
+  const marks=[25,50,75,100];
+  state.goals.forEach(g=>{
+    const pct=(g.saved||0)/(g.target||1)*100;
+    g.celebrated=g.celebrated||[];
+    marks.forEach(m=>{
+      if(pct>=m && !g.celebrated.includes(m)){
+        g.celebrated.push(m);
+        const msg = m===100 ? `🎉 مبروك! حققت هدف "${g.title}" بالكامل!` : `🎊 وصلت ${m}% من هدف "${g.title}" — استمر!`;
+        showToast(msg);
+      }
+    });
+  });
+  sSet('fajr_goals',state.goals);
 }
 
 /* =========================================================
-   المستشار المحلي — يجاوب من بيانات مخزّنة داخل التطبيق، بدون أي اتصال بالإنترنت
+   لوحة المعلومات — رسوم بيانية تفاعلية مع شفافية كاملة لكل رقم
    ========================================================= */
+function chartCard(title, svgHtml, infoHtml){
+  const uid='ci_'+Math.random().toString(36).slice(2,8);
+  return `<div class="card" style="margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span style="font-family:var(--f-display);font-weight:800;font-size:14px;">${title}</span>
+      <button class="btn-i" style="width:26px;height:26px;" onclick="const e=document.getElementById('${uid}');e.style.display=e.style.display==='none'?'block':'none';">${ICONS.info}</button>
+    </div>
+    ${svgHtml}
+    <div id="${uid}" style="display:none;font-size:11px;color:var(--text-2);line-height:1.7;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);">${infoHtml}</div>
+  </div>`;
+}
+function barChartSVG(items,maxV){
+  maxV=maxV||Math.max(1,...items.map(i=>i.v));
+  const w=560,h=140,bw=Math.min(72,(w-40)/items.length-14),gap=(w-items.length*bw)/(items.length+1);
+  let bars='',labels='';
+  items.forEach((it,i)=>{
+    const x=gap+i*(bw+gap);
+    const bh=clamp((it.v/maxV)*100,0,100)/100*(h-34);
+    bars+=`<rect x="${x}" y="${h-30-bh}" width="${bw}" height="${bh}" rx="6" fill="${it.c}"/>`;
+    labels+=`<text x="${x+bw/2}" y="${h-12}" text-anchor="middle" font-size="10" fill="#9C97AE" font-family="IBM Plex Sans Arabic">${it.l}</text>`;
+    labels+=`<text x="${x+bw/2}" y="${h-34-bh<12?12:h-34-bh}" text-anchor="middle" font-size="10" fill="#F3F1F8" font-family="IBM Plex Mono">${fmtShort(it.v)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;">${bars}${labels}</svg>`;
+}
+function donutSVG(items){
+  const total=items.reduce((s,i)=>s+i.v,0)||1;
+  const r=54,cx=80,cy=70,circ=2*Math.PI*r;
+  let off=0,arcs='';
+  items.forEach(it=>{
+    const frac=it.v/total, len=frac*circ;
+    arcs+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${it.c}" stroke-width="18" stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"/>`;
+    off+=len;
+  });
+  const legend=items.map(it=>`<div style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text-2);"><span style="width:9px;height:9px;border-radius:50%;background:${it.c};flex:none;"></span>${it.l}: <b class="num" style="color:var(--text);">${fmt(it.v).replace(' ريال','')}</b></div>`).join('');
+  return `<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+    <svg viewBox="0 0 160 140" style="width:150px;height:auto;flex:none;">${arcs||'<circle cx="80" cy="70" r="54" fill="none" stroke="#2A2739" stroke-width="18"/>'}</svg>
+    <div style="display:flex;flex-direction:column;gap:7px;">${legend}</div>
+  </div>`;
+}
+function lineChartSVG(points,label1,label2){
+  const w=560,h=180,x0=40,x1=540,y0=155,y1=15;
+  const maxV=Math.max(1,...points.map(p=>Math.max(p.a,p.b||0)))*1.1;
+  const X=i=>x0+(i/(points.length-1||1))*(x1-x0), Y=v=>y0-clamp(v/maxV,0,1)*(y0-y1);
+  let grid='';
+  for(let k=0;k<=3;k++){const yy=y0-(k/3)*(y0-y1);grid+=`<line x1="${x0}" y1="${yy}" x2="${x1}" y2="${yy}" stroke="#2A2739" stroke-width="1"/>`;}
+  const pathA=points.map((p,i)=>`${i?'L':'M'} ${X(i)} ${Y(p.a)}`).join(' ');
+  const pathB=points.some(p=>p.b!==undefined)?points.map((p,i)=>`${i?'L':'M'} ${X(i)} ${Y(p.b||0)}`).join(' '):'';
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;">${grid}
+    <path d="${pathA}" fill="none" stroke="#FFB547" stroke-width="2.5"/>
+    ${pathB?`<path d="${pathB}" fill="none" stroke="#34D9A8" stroke-width="2" stroke-dasharray="5 4"/>`:''}
+  </svg>
+  <div style="display:flex;gap:16px;margin-top:6px;font-size:11px;color:var(--text-2);">
+    <span style="display:flex;align-items:center;gap:6px;"><i style="width:10px;height:10px;border-radius:50%;background:#FFB547;display:inline-block;"></i>${label1}</span>
+    ${pathB?`<span style="display:flex;align-items:center;gap:6px;"><i style="width:10px;height:10px;border-radius:50%;background:#34D9A8;display:inline-block;"></i>${label2}</span>`:''}
+  </div>`;
+}
+
+function renderDashboard(){
+  const el=document.getElementById('dash-body');
+  if(!state.profile && !state.banks.length){
+    el.innerHTML=`<div class="card"><div class="empty"><div class="e-ic">${ICONS.chart}</div>
+      <h3>لوحتك فاضية بعد</h3><p>أدخل بياناتك المالية وأضف أهدافًا حتى نبني لك رسوم بيانية حقيقية بدل شاشة فاضية.</p>
+      <button class="btn btn-p" onclick="switchView('data')">${ICONS.data} أدخل بياناتي</button></div></div>`;
+    return;
+  }
+  const c=calcProfile(state.profile);
+  const pool=totalPool(), savings=(state.profile&&state.profile.savings)||0, invest=(state.profile&&state.profile.investment)||0;
+  const bankTotal=bankTotals(), netWorth=bankTotal+pool;
+  const allocSum=allocatedTotal(null), free=Math.max(0,pool-allocSum);
+  const x=calcXP();
+
+  let html='';
+
+  // ١. التدفق النقدي الشهري
+  html+=chartCard('التدفق النقدي الشهري',
+    barChartSVG([
+      {l:'الدخل',v:c.income,c:'#34D9A8'},
+      {l:'المصاريف',v:c.expenses,c:'#FF5F6D'},
+      {l:'الفائض',v:Math.max(0,c.surplus),c:'#FFB547'}
+    ]),
+    `<b>كيف حُسب:</b> الدخل = الراتب + الدخل الإضافي المدخلة في "بياناتي المالية". المصاريف = مجموع السكن والفواتير والمواصلات والأقساط والمصاريف المتغيرة. الفائض = الدخل − المصاريف. هذه أرقام فعلية من بياناتك، وليست تقديرًا.`);
+
+  // ٢. توزيع المحفظة (ادخار / استثمار / غير مخصص)
+  if(pool>0){
+    html+=chartCard('توزيع محفظتك',
+      donutSVG([
+        {l:'حساب الادخار',v:savings,c:'#34D9A8'},
+        {l:'الحساب الاستثماري',v:invest,c:'#A06BC4'},
+      ].filter(i=>i.v>0)),
+      `<b>كيف حُسب:</b> القيم من حقلَي "حساب الادخار" و"الحساب الاستثماري" في بياناتك المالية. من إجمالي ${fmt(pool)}، المخصَّص لأهدافك ${fmt(allocSum)} وغير المخصَّص ${fmt(free)}.`);
+  }
+
+  // ٣. تقدم كل هدف (مقارنة)
+  if(state.goals.length){
+    const items=state.goals.slice(0,6).map(g=>({l:g.title.length>10?g.title.slice(0,9)+'…':g.title, v:Math.round((g.saved||0)/(g.target||1)*100), c:g.color}));
+    html+=chartCard('نسبة الإنجاز لكل هدف (%)',
+      barChartSVG(items,100),
+      `<b>كيف حُسب:</b> لكل هدف: (المبلغ المخصَّص ÷ المبلغ المستهدف) × 100. القيم من صفحة "أهدافي" مباشرة.`);
+
+    // ٤. سرعة الوصول: الوتيرة الفعلية مقابل المطلوبة
+    const velItems=[];
+    state.goals.slice(0,4).forEach(g=>{
+      const gs=goalStats(g);
+      velItems.push({l:(g.title.length>8?g.title.slice(0,7)+'…':g.title)+' (فعلي)', v:Math.round(gs.avgMonthly), c:'#34D9A8'});
+      velItems.push({l:(g.title.length>8?g.title.slice(0,7)+'…':g.title)+' (مطلوب)', v:Math.round(gs.requiredMonthly), c:'#FF8F3C'});
+    });
+    html+=chartCard('سرعة الوصول: وتيرتك مقابل المطلوبة (شهريًا)',
+      barChartSVG(velItems),
+      `<b>كيف حُسب:</b> "فعلي" = إجمالي المخصَّص للهدف ÷ عدد الأشهر منذ إنشائه. "مطلوب" = (المبلغ المتبقي) ÷ (الأشهر المتبقية حتى الموعد المستهدف). لو الفعلي أقل من المطلوب فأنت متأخر عن خطتك.`);
+  }
+
+  // ٥. توقع نمو رأس المال (ادخار فقط مقابل ادخار + استثمار)
+  if(c.surplus>0){
+    const years=5, months=years*12;
+    const pts=[]; let fvNo=0, fvYes=0; const iM=0.06/12;
+    for(let m=0;m<=months;m+=3){
+      fvNo=c.surplus*m;
+      fvYes = iM>0 ? c.surplus*((Math.pow(1+iM,m)-1)/iM) : c.surplus*m;
+      pts.push({a:fvYes,b:fvNo});
+    }
+    html+=chartCard('توقع نمو رأس المال خلال 5 سنوات',
+      lineChartSVG(pts,'بعائد استثماري 6% سنويًا (افتراضي)','ادخار نقدي فقط (0%)'),
+      `<b>كيف حُسب:</b> بافتراض استمرار فائضك الشهري الحالي (${fmt(c.surplus)}) دون تغيير. الخط الذهبي بعائد استثماري افتراضي 6% سنويًا (غير مضمون ويعتمد على نوع الاستثمار الفعلي). الخط الأخضر المتقطع بدون أي عائد. <b>هذا توقع وليس رقمًا مؤكدًا</b> — مستوى الثقة منخفض على المدى الطويل لأنه يفترض ثبات دخلك ومصاريفك.`);
+  }
+
+  // ٦. صافي الثروة الحالي
+  html+=`<div class="card" style="margin-bottom:14px;">
+    <div style="font-family:var(--f-display);font-weight:800;font-size:14px;margin-bottom:10px;">صافي ثروتك الحالي</div>
+    <div class="stat-v gold" style="font-size:24px;">${fmt(netWorth)}</div>
+    <div style="font-size:11px;color:var(--text-2);margin-top:8px;">= رصيد حساباتك المربوطة (${fmt(bankTotal)}) + محفظة الادخار والاستثمار (${fmt(pool)}). لا يشمل الأصول العينية (عقار، سيارة) أو الديون غير المسجّلة.</div>
+  </div>`;
+
+  // ٧. معدل الالتزام (XP)
+  html+=`<div class="sec"><h2>معدل التزامك</h2></div>${renderXPCard()}`;
+
+  el.innerHTML=html;
+}
 function suggestedQuestions(){
-  return ['كيف أوزع راتبي؟','هل بوصل لهدفي في موعده؟','وش وضعي المالي؟','كم أقدر أدخر شهريًا؟','هل زكاتي واجبة؟'];
+  return ['كيف أوزع راتبي؟','هل بوصل لهدفي في موعده؟','وش وضعي المالي؟','اقترح لي هدف جديد','هل انا بخطر مالي؟'];
 }
 function localAdvisorReply(msg){
   const m=(msg||'').trim();
@@ -1740,6 +2039,47 @@ function localAdvisorReply(msg){
   // شكر / تحية
   if(has(['شكرا','يعطيك العافية','تسلم','شكراً'])) return 'العفو! تحت أمرك في أي وقت. 🌅';
   if(has(['مرحبا','هلا','السلام عليكم','هاي'])) return 'هلا فيك! اسألني عن راتبك، أهدافك، أو أي قرار مالي — أرد عليك بأرقامك الفعلية.';
+
+  // اقتراح هدف جديد
+  if(has(['اقترح هدف','هدف جديد','وش هدف مناسب','أي هدف'])){
+    if(c.surplus<=0) return 'وضعك الحالي فيه عجز شهري، فما أنصحك تضيف هدف جديد الآن — ركّز على تعديل مصاريفك أول.';
+    const existing=new Set(state.goals.map(g=>g.templateId));
+    const suggestion=TEMPLATES.find(t=>!existing.has(t.id)&&t.id!=='custom');
+    if(!suggestion) return 'عندك تقريبًا كل أنواع الأهداف مسجّلة! زوّد أهداف مخصصة من صفحة "أهدافي".';
+    return `بناءً على فائضك (${fmt(c.surplus)})، هدف "${suggestion.title}" ممكن يناسبك — ${suggestion.desc}. تقدر تضيفه من صفحة "أهدافي".`;
+  }
+
+  // اقتراح تعديل الميزانية
+  if(has(['عدل ميزانيتي','تعديل الميزانية','قلل مصاريفي','وين اقلل'])){
+    const p=state.profile||{};
+    const items=[['سكن',p.housing||0],['فواتير',p.bills||0],['مواصلات',p.transport||0],['مصاريف متغيرة',p.variable||0]];
+    items.sort((a,b)=>b[1]-a[1]);
+    const top=items[0];
+    return `أكبر بند في مصاريفك هو "${top[0]}" بـ ${fmt(top[1])}. لو قلّصته 10% بس، توفّر ${fmt(top[1]*0.1)} شهريًا إضافية لأهدافك. راجع "بياناتي المالية" لتعديل الأرقام.`;
+  }
+
+  // فرص استثمار
+  if(has(['فرصة استثمار','فرص استثمار','وين استثمر','استثمار مناسب'])){
+    const pool=totalPool();
+    if(pool<=0) return 'ما عندك رصيد ادخار أو استثمار مسجّل بعد. ابدأ بادخار جزء من فائضك الشهري أول، وبعدها نقدر نتكلم عن خيارات الاستثمار.';
+    return `عندك ${fmt(pool)} في محفظتك. فجر ما يقدر يوصي بمنتج استثماري معيّن أو يضمن عائد — لكن تقدر تشوف "الحاسبة المستقبلية" لمقارنة أثر عوائد مختلفة (0% مقابل 6% افتراضي) على أهدافك، وراجع مستشارًا ماليًا مرخصًا لقرارات استثمار فعلية.`;
+  }
+
+  // تنبيهات المخاطر
+  if(has(['مخاطر','خطر مالي','تحذير','هل انا بخطر'])){
+    const risks=[];
+    if(c.surplus<0) risks.push('مصاريفك تتجاوز دخلك — عجز شهري حقيقي.');
+    if(c.income>0 && (c.debt/c.income*100)>33) risks.push(`التزاماتك ${((c.debt/c.income)*100).toFixed(0)}% من دخلك — فوق الحد الآمن (33%).`);
+    if(state.goals.some(g=>{const gs=goalStats(g);return gs.paceStatus==='behind';})) risks.push('عندك هدف أو أكثر متأخر عن وتيرته المطلوبة.');
+    if(!risks.length) return 'ما لقيت مؤشرات خطر واضحة في وضعك الحالي — استمر على نفس المسار! 👍';
+    return '⚠️ نقاط تحتاج انتباه:\n'+risks.map(r=>'- '+r).join('\n');
+  }
+
+  // متى تنتهي كل الأهداف
+  if(has(['متى تنتهي أهدافي','متى تخلص أهدافي','جدول أهدافي'])){
+    if(!state.goals.length) return 'ما عندك أهداف مسجّلة بعد.';
+    return state.goals.map(g=>{const gs=goalStats(g);return `- ${g.title}: ${gs.etaMonths===0?'مكتمل':fmtDuration(gs.etaMonths)} (بوتيرتك الحالية)`;}).join('\n');
+  }
 
   // افتراضي — ملخص + اقتراح أسئلة
   return `ما فهمت سؤالك بالضبط، بس هذا ملخص سريع: فائضك الشهري ${fmt(c.surplus)}`+
@@ -2622,6 +2962,7 @@ async function init(){
   state.simCustom = (await sGet('fajr_sim_custom'))||{};
   state.profile=profile||null; state.goals=goals||[]; state.zakat=zakat||null;
   chatHistory=chat||[]; state.banks=banks||[]; state.sim=sim||{}; state.simUsed=!!simUsed;
+  state.goals.forEach(g=>{g.celebrated=g.celebrated||[];});
 
   populateData();
   Object.keys(FIELD_MAP).forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener('input',renderDataSummary); });
