@@ -2,8 +2,17 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>فجر | مديرك المالي الرقمي</title>
+<meta name="description" content="فجر — مديرك المالي الرقمي: يجمع حساباتك، يفهم وضعك، ويخطط معك لأهدافك.">
+<meta name="theme-color" content="#0A0912" id="meta-theme">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="فجر">
+<link rel="apple-touch-icon" id="apple-icon">
+<link rel="icon" id="favicon">
+<link rel="manifest" id="manifest-link">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -95,7 +104,7 @@
     position:sticky;top:0;z-index:30;
     background:color-mix(in srgb, var(--void) 86%, transparent);
     -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
-    padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:calc(14px + env(safe-area-inset-top)) 18px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;
     border-bottom:1px solid transparent;transition:border-color .2s;
   }
   .topbar.scrolled{border-bottom-color:var(--line);}
@@ -513,6 +522,55 @@
   .skip{font-size:12px;color:var(--text-3);font-weight:600;padding:8px 4px;}
   .skip:hover{color:var(--text-2);}
 
+  /* ================= ONBOARDING WIZARD ================= */
+  .wizard-bg{
+    position:fixed;inset:0;z-index:80;
+    background:var(--void);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:20px;
+  }
+  .wizard-bg.hidden{display:none;}
+  .wizard{width:100%;max-width:480px;display:flex;flex-direction:column;gap:0;}
+
+  /* شريط التقدم */
+  .wiz-progress{display:flex;gap:6px;justify-content:center;margin-bottom:32px;}
+  .wiz-dot{
+    height:4px;border-radius:3px;flex:1;max-width:60px;
+    background:var(--line);transition:background .3s,width .3s;
+  }
+  .wiz-dot.done{background:var(--amber);}
+  .wiz-dot.active{background:var(--sunrise);animation:shimmer 1.6s ease-in-out infinite;}
+  @keyframes shimmer{0%,100%{opacity:1;}50%{opacity:.65;}}
+
+  /* محتوى الخطوة */
+  .wiz-step{display:none;animation:vIn .4s cubic-bezier(.34,1.4,.64,1);}
+  .wiz-step.active{display:block;}
+  .wiz-icon{width:62px;height:62px;border-radius:20px;background:var(--sunrise);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;color:var(--on-accent);}
+  .wiz-icon svg{width:29px;height:29px;}
+  .wiz-h{font-family:var(--f-display);font-weight:800;font-size:24px;text-align:center;margin-bottom:9px;}
+  .wiz-sub{font-size:14px;color:var(--text-2);text-align:center;line-height:1.7;margin-bottom:28px;}
+
+  .wiz-feet{display:flex;flex-direction:column;gap:10px;margin-top:22px;}
+  .wiz-skip{font-size:13px;color:var(--text-3);font-weight:600;text-align:center;padding:10px;}
+  .wiz-skip:hover{color:var(--text-2);}
+
+  /* ================= API KEY BANNER ================= */
+  .apikey-banner{
+    display:flex;gap:12px;align-items:flex-start;padding:16px;
+    background:var(--card-2);border:1px solid var(--line);border-radius:var(--r-sm);
+    border-right:3px solid var(--amber);margin-bottom:14px;
+  }
+  .apikey-banner svg{width:18px;height:18px;flex:none;color:var(--amber);margin-top:2px;}
+  .apikey-banner p{font-size:12.5px;color:var(--text);line-height:1.65;}
+  .apikey-banner a{color:var(--amber);font-weight:600;}
+  .apikey-form{display:flex;gap:9px;margin-top:11px;}
+  .apikey-form input{
+    flex:1;padding:11px 14px;border:1px solid var(--line);border-radius:var(--r-sm);
+    font-family:var(--f-num);font-size:12.5px;background:var(--card-3);color:var(--text);
+    letter-spacing:.04em;
+  }
+  .apikey-form input:focus{outline:none;border-color:var(--amber);}
+
   /* ================= TOAST ================= */
   .toast{
     position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(16px);
@@ -580,6 +638,7 @@
   <!-- MORE -->
   <section class="view" id="v-more" data-view="more">
     <div class="vhead"><div><h1>المزيد</h1><p>كل خدمات فجر</p></div></div>
+    <div id="more-xp" style="margin-bottom:16px;"></div>
     <div class="more-grid" id="more-grid"></div>
     <div class="sec"><h2>الحساب</h2></div>
     <div class="card" style="padding:6px 16px;">
@@ -617,7 +676,8 @@
           <h3>المتغيرة والمدخرات</h3><div class="hint">تقدير شهري ومدخراتك الحالية</div>
           <div class="fg">
             <div class="fld"><label>مصاريف متغيرة</label><div class="wrap"><input type="number" min="0" id="f-variable" placeholder="0"><span class="sfx">ريال</span></div></div>
-            <div class="fld"><label>مدخرات واستثمارات</label><div class="wrap"><input type="number" min="0" id="f-savings" placeholder="0"><span class="sfx">ريال</span></div></div>
+            <div class="fld"><label>حساب الادخار</label><div class="wrap"><input type="number" min="0" id="f-savings" placeholder="0"><span class="sfx">ريال</span></div></div>
+            <div class="fld"><label>الحساب الاستثماري</label><div class="wrap"><input type="number" min="0" id="f-investment" placeholder="0"><span class="sfx">ريال</span></div></div>
           </div>
         </div>
         <button class="btn btn-p btn-b" id="save-profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> حفظ بياناتي</button>
@@ -689,8 +749,9 @@
   <div class="fld"><label>اسم الهدف</label><input type="text" id="g-name" placeholder="مثال: شقة الزواج"></div>
   <div class="fg">
     <div class="fld"><label>المبلغ المستهدف</label><div class="wrap"><input type="number" min="0" id="g-target"><span class="sfx">ريال</span></div></div>
-    <div class="fld"><label>المدخر حاليًا</label><div class="wrap"><input type="number" min="0" id="g-saved" value="0"><span class="sfx">ريال</span></div></div>
+    <div class="fld"><label>خصص من مدخراتك/استثمارك</label><div class="wrap"><input type="number" min="0" id="g-saved" value="0"><span class="sfx">ريال</span></div></div>
   </div>
+  <div id="g-pool-hint" style="font-size:11px;color:var(--text-3);margin:-8px 0 14px;"></div>
   <div class="fld"><label>تاريخ التحقيق</label><input type="month" id="g-date"></div>
   <div class="fld"><label>كيف تبي توصل له؟</label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
@@ -723,13 +784,117 @@
   <button class="btn btn-p btn-b" id="t-save" style="margin-top:6px;">إضافة</button>
 </div></div>
 
-<div class="sheet-bg" id="sheet-welcome"><div class="sheet"><div class="grab"></div>
-  <div class="sheet-h"><h3>أهلًا بك في فجر</h3><button class="btn-i" onclick="closeSheet('sheet-welcome')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
-  <p style="font-size:13px;color:var(--text-2);line-height:1.75;margin-bottom:18px;">فجر مديرك المالي — يجمع حساباتك، يفهم وضعك، ويخطط معك لأهدافك الكبيرة بالعربية. بياناتك بين يديك بالكامل.</p>
-  <div id="welcome-list" style="display:flex;flex-direction:column;gap:13px;margin-bottom:20px;"></div>
-  <button class="btn btn-p btn-b" id="welcome-start">ابدأ الجولة التعريفية</button>
-  <button class="btn btn-g btn-b" style="margin-top:9px;" onclick="closeSheet('sheet-welcome')">تخطّي</button>
-</div></div>
+<!-- =====================================================
+     ONBOARDING WIZARD — شاشة استقبال تدريجية (4 خطوات)
+     ===================================================== -->
+<div class="wizard-bg" id="wizard-bg">
+  <div class="wizard">
+    <!-- شريط التقدم -->
+    <div class="wiz-progress">
+      <div class="wiz-dot active" id="wd0"></div>
+      <div class="wiz-dot" id="wd1"></div>
+      <div class="wiz-dot" id="wd2"></div>
+      <div class="wiz-dot" id="wd3"></div>
+    </div>
+
+    <!-- الخطوة 0: الترحيب -->
+    <div class="wiz-step active" id="ws0">
+      <div class="wiz-icon" id="wiz-ic-sun"></div>
+      <div class="wiz-h">أهلًا بك في فَجْر</div>
+      <div class="wiz-sub">مديرك المالي الشخصي — يفهم وضعك، يخطط معك، ويوصلك لأهدافك الحياتية خطوة بخطوة.</div>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:4px;">
+        <div class="row" style="padding:11px 14px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);">
+          <div class="row-ic in" style="width:32px;height:32px;" id="wiz-ic-data0"></div>
+          <div class="row-m"><div class="row-t" style="font-size:13px;">أدخل دخلك ومصاريفك</div><div class="row-s">حتى نعرف قدرتك الحقيقية</div></div>
+        </div>
+        <div class="row" style="padding:11px 14px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);">
+          <div class="row-ic" style="width:32px;height:32px;background:rgba(255,107,74,.14);color:var(--coral);" id="wiz-ic-goal0"></div>
+          <div class="row-m"><div class="row-t" style="font-size:13px;">حدد هدفك المالي</div><div class="row-s">زواج، سكن، سيارة، حج…</div></div>
+        </div>
+        <div class="row" style="padding:11px 14px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);">
+          <div class="row-ic" style="width:32px;height:32px;background:rgba(160,107,196,.14);color:var(--plum-lt);" id="wiz-ic-adv0"></div>
+          <div class="row-m"><div class="row-t" style="font-size:13px;">اسأل مستشارك</div><div class="row-s">يجاوبك بأرقامك أنت</div></div>
+        </div>
+      </div>
+      <div class="wiz-feet">
+        <button class="btn btn-p btn-b" onclick="wizNext()">ابدأ — أدخل بياناتك</button>
+        <button class="wiz-skip" onclick="wizSkip()">تخطّي وأدخل لاحقًا</button>
+      </div>
+    </div>
+
+    <!-- الخطوة 1: البيانات المالية -->
+    <div class="wiz-step" id="ws1">
+      <div class="wiz-icon" style="background:linear-gradient(135deg,var(--coral),var(--orange));" id="wiz-ic-data1"></div>
+      <div class="wiz-h">ما هو وضعك المالي؟</div>
+      <div class="wiz-sub">لا نرسل هذه البيانات لأي مكان — تبقى على جهازك فقط.</div>
+      <div class="fld" style="margin-bottom:12px;">
+        <label>الراتب الأساسي</label>
+        <div class="wrap"><input type="number" min="0" id="w-salary" placeholder="مثال: 12000"><span class="sfx">ريال</span></div>
+      </div>
+      <div class="fld" style="margin-bottom:12px;">
+        <label>دخل إضافي (اختياري)</label>
+        <div class="wrap"><input type="number" min="0" id="w-extra" placeholder="0"><span class="sfx">ريال</span></div>
+      </div>
+      <div class="fg" style="margin-bottom:12px;">
+        <div class="fld" style="margin-bottom:0;">
+          <label>سكن / إيجار</label>
+          <div class="wrap"><input type="number" min="0" id="w-housing" placeholder="0"><span class="sfx">ريال</span></div>
+        </div>
+        <div class="fld" style="margin-bottom:0;">
+          <label>فواتير واشتراكات</label>
+          <div class="wrap"><input type="number" min="0" id="w-bills" placeholder="0"><span class="sfx">ريال</span></div>
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:0;">
+        <div class="fld" style="margin-bottom:0;">
+          <label>مواصلات</label>
+          <div class="wrap"><input type="number" min="0" id="w-transport" placeholder="0"><span class="sfx">ريال</span></div>
+        </div>
+        <div class="fld" style="margin-bottom:0;">
+          <label>مصاريف متغيرة</label>
+          <div class="wrap"><input type="number" min="0" id="w-variable" placeholder="0"><span class="sfx">ريال</span></div>
+        </div>
+      </div>
+      <div id="w-surplus-hint" style="font-size:12.5px;color:var(--text-2);margin-top:14px;min-height:22px;text-align:center;"></div>
+      <div class="wiz-feet">
+        <button class="btn btn-p btn-b" onclick="wizSaveProfile()">التالي — حدد هدفك</button>
+        <button class="wiz-skip" onclick="wizSkip()">تخطّي</button>
+      </div>
+    </div>
+
+    <!-- الخطوة 2: الهدف -->
+    <div class="wiz-step" id="ws2">
+      <div class="wiz-icon" style="background:linear-gradient(135deg,var(--amber),var(--orange));" id="wiz-ic-goal2"></div>
+      <div class="wiz-h">ما هو هدفك الأول؟</div>
+      <div class="wiz-sub">اختر هدفًا تبدأ تخطط له — تقدر تضيف أهدافًا أخرى لاحقًا.</div>
+      <div id="w-tpl-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;"></div>
+      <div class="wiz-feet">
+        <button class="wiz-skip" onclick="wizSkip()">تخطّي — أضيف هدفًا لاحقًا</button>
+      </div>
+    </div>
+
+    <!-- الخطوة 3: تفاصيل الهدف المختار -->
+    <div class="wiz-step" id="ws3">
+      <div class="wiz-icon" id="w-goal-ic" style="background:linear-gradient(135deg,var(--amber),var(--coral));"></div>
+      <div class="wiz-h" id="w-goal-title">هدفك الأول</div>
+      <div class="wiz-sub" id="w-goal-sub">حدد المبلغ والموعد المستهدف.</div>
+      <div class="fld" style="margin-bottom:12px;">
+        <label>المبلغ المستهدف</label>
+        <div class="wrap"><input type="number" min="0" id="w-gtarget"><span class="sfx">ريال</span></div>
+      </div>
+      <div class="fld" style="margin-bottom:12px;">
+        <label>متى تبي توصل له؟</label>
+        <input type="month" id="w-gdate">
+      </div>
+      <div id="w-goal-preview" style="font-size:12.5px;color:var(--text-2);min-height:22px;text-align:center;margin-bottom:4px;line-height:1.65;"></div>
+      <div class="wiz-feet">
+        <button class="btn btn-p btn-b" onclick="wizSaveGoal()">حفظ الهدف والبدء</button>
+        <button class="wiz-skip" onclick="wizSkip()">تخطّي</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- Coach tour -->
 <div class="coach-bg" id="coach">
@@ -745,6 +910,10 @@
   </div>
 </div>
 
+<button id="install-fab" onclick="doInstall()" style="display:none;position:fixed;left:16px;bottom:96px;z-index:70;align-items:center;gap:8px;padding:12px 18px;border-radius:100px;background:var(--sunrise);color:var(--on-accent);font-family:var(--f-display);font-weight:700;font-size:13.5px;box-shadow:0 10px 28px -6px rgba(0,0,0,.5);">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+  تثبيت التطبيق
+</button>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1007,14 +1176,10 @@ const SUBVIEW_PARENT = {data:'more',projection:'more',zakat:'more',providers:'mo
 
 /* الخدمات السريعة على الرئيسية — بلا تركيز على التمويل */
 const QUICK = [
-  {id:'account',    label:'ربط حساب',    icon:'link',   c:'#7A4A9E'},
-  {id:'goals',      label:'هدف جديد',    icon:'goals',  c:'#FF6B4A'},
-  {id:'zakat',      label:'الزكاة',      icon:'zakat',  c:'#34D9A8'},
-  {id:'projection', label:'الحاسبة',     icon:'projection', c:'#FF8F3C'},
-  {id:'advisor',    label:'المستشار',    icon:'advisor',c:'#A06BC4'},
-  {id:'providers',  label:'سوق فجر',     icon:'providers', c:'#FFB547'},
-  {id:'data',       label:'بياناتي',     icon:'data',   c:'#4FA396'},
-  {id:'more',       label:'المزيد',      icon:'grid',   c:'#6B6680'}
+  {id:'account',    label:'حسابي',      icon:'link',   c:'#7A4A9E'},
+  {id:'goals',      label:'هدف جديد',   icon:'goals',  c:'#FF6B4A'},
+  {id:'advisor',    label:'المستشار',   icon:'advisor',c:'#A06BC4'},
+  {id:'more',       label:'المزيد',     icon:'grid',   c:'#6B6680'}
 ];
 const MORE_TILES = [
   {id:'data',       label:'بياناتي المالية', icon:'data',   c:'#4FA396'},
@@ -1046,6 +1211,7 @@ let currentTheme = 'sunrise';
 function applyTheme(t){
   currentTheme = (t==='green')?'green':'sunrise';
   document.documentElement.setAttribute('data-theme', currentTheme);
+  const mt=document.getElementById('meta-theme'); if(mt)mt.setAttribute('content', currentTheme==='green'?'#F4F8F5':'#0A0912');
   sSet('fajr_theme', currentTheme);
   const btn = document.getElementById('theme-btn');
   if(btn) btn.innerHTML = currentTheme==='green' ? ICONS.moon2 : ICONS.sun;
@@ -1086,7 +1252,7 @@ function renderTopbar(view){
   const x=calcXP();
   right.innerHTML =
     `<button class="tb-btn" id="theme-btn" onclick="toggleTheme()">${currentTheme==='green'?ICONS.moon2:ICONS.sun}</button>`+
-    `<button class="tb-btn" onclick="openWelcome()">${ICONS.info}</button>`;
+    `<button class="tb-btn" onclick="document.getElementById('wizard-bg').classList.remove('hidden');wizGoTo(0)">${ICONS.info}</button>`;
   left.innerHTML =
     `<div class="tb-xp"><span class="x-l">نقاطك</span><span class="x-v num">${x.pts}</span></div>`+
     `<div class="avatar">م</div>`;
@@ -1184,15 +1350,6 @@ function renderHome(){
     </div>`;
   }
 
-  let stats='';
-  if(state.profile){
-    stats=`<div class="grid g3" style="margin-top:14px;">
-      <div class="card stat"><div class="stat-l">الدخل</div><div class="stat-v">${fmt(c.income).replace(' ريال','')}</div></div>
-      <div class="card stat"><div class="stat-l">المصاريف</div><div class="stat-v">${fmt(c.expenses).replace(' ريال','')}</div></div>
-      <div class="card stat"><div class="stat-l">حسابات مربوطة</div><div class="stat-v gold">${fmt(bankTotal).replace(' ريال','')}</div></div>
-    </div>`;
-  }
-
   let tip='';
   if(state.profile&&nearest&&c.surplus>0){
     const need=goalMonthlyNeed(nearest);
@@ -1206,14 +1363,7 @@ function renderHome(){
   }
   const tipHtml=tip?`<div class="tip">${ICONS.bulb}<span>${tip}</span></div>`:'';
 
-  const xp=`<div class="sec"><h2>مؤشر الالتزام</h2></div>${renderXPCard()}`;
-
-  const goalsRow=state.goals.length
-    ? `<div class="sec"><h2>أهدافي</h2><button class="all" onclick="switchView('goals')">عرض الكل</button></div>
-       <div class="mini-row">${state.goals.map(miniGoal).join('')}</div>`
-    : '';
-
-  home.innerHTML = balance + `<div style="height:14px"></div>` + quick + firstRun + nearestCard + stats + tipHtml + xp + goalsRow;
+  home.innerHTML = balance + `<div style="height:14px"></div>` + quick + firstRun + nearestCard + tipHtml;
 }
 function miniGoal(g){
   const pct=clamp(((g.saved||0)/(g.target||1))*100,0,100);
@@ -1308,13 +1458,26 @@ async function saveTx(){
 }
 async function syncBanks(){
   if(!state.banks.length)return;
-  if(!confirm('سيُحسب دخلك ومصاريفك من عملياتك وتُعبّأ صفحة بياناتي (تستبدل القيم عدا المدخرات). متابعة؟'))return;
+  if(!confirm('سيُحسب دخلك ومصاريفك من عملياتك وتُعبّأ صفحة بياناتي (تستبدل القيم عدا الادخار والاستثمار). متابعة؟'))return;
   const sums={}; state.banks.forEach(b=>b.transactions.forEach(t=>{sums[t.category]=(sums[t.category]||0)+t.amount;}));
   const g=k=>sums[k]||0;
   state.profile={salary:g('راتب'),extra:g('دخل إضافي')+g('تحويل وارد'),housing:g('سكن'),transport:g('مواصلات'),
     bills:g('فواتير واشتراكات'),debt:g('أقساط'),variable:g('تسوق')+g('مطاعم')+g('صحة')+g('أخرى'),
-    savings:(state.profile&&state.profile.savings)||0};
+    savings:(state.profile&&state.profile.savings)||0, investment:(state.profile&&state.profile.investment)||0};
   await sSet('fajr_profile',state.profile); populateData(); showToast('تم نقل بياناتك');
+}
+
+/* ---------- Pool: savings + investment shared between goals ----------
+   المدخرات والاستثمار محفظة واحدة تُخصَّص أجزاء منها للأهداف — لا رقم منفصل لكل هدف */
+function totalPool(){
+  const p=state.profile||{};
+  return (p.savings||0)+(p.investment||0);
+}
+function allocatedTotal(excludeId){
+  return state.goals.reduce((s,g)=> g.id===excludeId?s:s+(g.alloc||0), 0);
+}
+function unallocatedPool(excludeId){
+  return Math.max(0, totalPool()-allocatedTotal(excludeId));
 }
 
 /* ---------- GOALS ---------- */
@@ -1326,6 +1489,18 @@ function renderGoals(){
   const sorted=[...state.goals].sort((a,b)=>monthsFromNow(a.date)-monthsFromNow(b.date));
   let cum=0; const feasible={};
   sorted.forEach(g=>{cum+=goalMonthlyNeed(g);feasible[g.id]=state.profile?(cum<=c.surplus):true;});
+
+  const pool=totalPool(), allocSum=allocatedTotal(null), free=Math.max(0,pool-allocSum);
+  const poolCard=pool>0?`<div class="card" style="margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-family:var(--f-display);font-weight:800;font-size:13.5px;">محفظة الادخار والاستثمار</span>
+      <span class="num" style="font-size:13px;color:var(--gold);">${fmt(pool)}</span>
+    </div>
+    <div class="track" style="height:9px;margin-bottom:8px;"><div class="fill" style="width:${clamp((allocSum/pool)*100,0,100)}%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);">
+      <span class="num">مخصَّص لأهدافك: ${fmt(allocSum)}</span><span class="num" style="color:var(--mint)">غير مخصَّص: ${fmt(free)}</span>
+    </div>
+  </div>`:'';
 
   const alloc=state.profile?`<div class="card" style="margin-bottom:14px;">
     <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-2);margin-bottom:8px;">
@@ -1341,16 +1516,18 @@ function renderGoals(){
       <div style="display:flex;gap:5px;"><button class="btn-i" style="width:32px;height:32px;" onclick="editGoal('${g.id}')">${ICONS.edit}</button>
       <button class="btn-i" style="width:32px;height:32px;" onclick="delGoal('${g.id}')">${ICONS.trash}</button></div></div>
       <div class="goal-g"><div><div class="l">المستهدف</div><div class="v">${fmt(g.target).replace(' ريال','')}</div></div>
-      <div><div class="l">مدخر</div><div class="v">${fmt(g.saved||0).replace(' ريال','')}</div></div>
+      <div><div class="l">مخصَّص له</div><div class="v">${fmt(g.saved||0).replace(' ريال','')}</div></div>
       <div><div class="l">شهريًا</div><div class="v">${fmt(need).replace(' ريال','')}</div></div></div>
       <div class="track" style="margin-bottom:10px;"><div class="fill" style="width:${ps}%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-top:-4px;margin-bottom:10px;">
+        <span class="num">${Math.round(ps)}% مكتمل</span></div>
       <div style="display:flex;gap:7px;flex-wrap:wrap;">
         <span class="tag ${ok?'tag-ok':'tag-no'}">${ok?ICONS.check:''} ${ok?'على المسار':'يحتاج مراجعة'}</span>
         <span class="tag tag-n">${g.mode==='finance'?'تقسيط':'ادخار'}</span></div>
     </div>`;
   }).join(''):'';
 
-  el.innerHTML=alloc+mine+
+  el.innerHTML=poolCard+alloc+mine+
     `<div class="sec"><h2>خطط مقترحة</h2><button class="all" onclick="openGoal('custom')">+ هدف مخصص</button></div>
      <div class="tpl-grid">${TEMPLATES.map(t=>`<div class="tpl">
        <div class="tpl-ic" style="background:${t.bg};color:${t.color}">${iconTag(t.icon)}</div>
@@ -1368,9 +1545,20 @@ function setMode(m){
 }
 function goalPreview(){
   const el=document.getElementById('g-preview'); if(!el)return;
+  const gid=document.getElementById('g-id').value;
   const target=parseFloat(document.getElementById('g-target').value)||0;
-  const saved=parseFloat(document.getElementById('g-saved').value)||0;
+  let saved=parseFloat(document.getElementById('g-saved').value)||0;
   const date=document.getElementById('g-date').value;
+  const avail=unallocatedPool(gid); // المتاح غير المخصص من محفظة الادخار+الاستثمار (باستثناء تخصيص هذا الهدف نفسه)
+  const poolHint=document.getElementById('g-pool-hint');
+  if(saved>avail){
+    saved=avail; document.getElementById('g-saved').value=avail;
+  }
+  if(poolHint){
+    poolHint.innerHTML = totalPool()>0
+      ? `محفظتك (ادخار + استثمار): <b class="num">${fmt(totalPool())}</b> — المتاح للتخصيص الآن: <b class="num" style="color:var(--mint)">${fmt(avail)}</b>`
+      : `ما عندك رصيد ادخار أو استثمار مسجّل بعد — أضفه من "بياناتي المالية" ليُخصَّص لهذا الهدف.`;
+  }
   const months=monthsFromNow(date), rem=Math.max(0,target-saved);
   if(rem<=0||!months){el.textContent='';return;}
   if(modalGoalMode==='cash'){
@@ -1388,7 +1576,7 @@ function openGoal(tpl,gid){
     const g=state.goals.find(x=>x.id===gid);
     document.getElementById('goal-title').textContent='تعديل الهدف';
     document.getElementById('g-name').value=g.title; document.getElementById('g-target').value=g.target;
-    document.getElementById('g-saved').value=g.saved||0; document.getElementById('g-date').value=g.date;
+    document.getElementById('g-saved').value=g.alloc||0; document.getElementById('g-date').value=g.date;
     setMode(g.mode||'cash');
   }else{
     const t=TEMPLATES.find(x=>x.id===tpl);
@@ -1410,47 +1598,278 @@ async function saveGoal(){
   const gid=document.getElementById('g-id').value, tpl=document.getElementById('g-tpl').value;
   const title=document.getElementById('g-name').value.trim()||'هدف';
   const target=parseFloat(document.getElementById('g-target').value)||0;
-  const saved=parseFloat(document.getElementById('g-saved').value)||0;
   const date=document.getElementById('g-date').value;
-  if(gid){const g=state.goals.find(x=>x.id===gid);Object.assign(g,{title,target,saved,date,mode:modalGoalMode});}
+  const avail=unallocatedPool(gid);
+  const alloc=Math.min(avail, parseFloat(document.getElementById('g-saved').value)||0);
+  if(gid){const g=state.goals.find(x=>x.id===gid);Object.assign(g,{title,target,saved:alloc,alloc,date,mode:modalGoalMode});}
   else{const t=TEMPLATES.find(x=>x.id===tpl)||{icon:'goals',color:'#FF6B4A',bg:'rgba(255,107,74,.14)'};
-    state.goals.push({id:'g_'+Date.now(),templateId:tpl||'custom',title,icon:t.icon,color:t.color,bg:t.bg,target,saved,date,mode:modalGoalMode});}
+    state.goals.push({id:'g_'+Date.now(),templateId:tpl||'custom',title,icon:t.icon,color:t.color,bg:t.bg,target,saved:alloc,alloc,date,mode:modalGoalMode});}
   await sSet('fajr_goals',state.goals); closeSheet('sheet-goal'); renderGoals(); showToast('تم حفظ الهدف');
 }
 
-/* ---------- CHAT ---------- */
+/* =========================================================
+   المستشار المحلي — يجاوب من بيانات مخزّنة داخل التطبيق، بدون أي اتصال بالإنترنت
+   ========================================================= */
+function suggestedQuestions(){
+  return ['كيف أوزع راتبي؟','هل بوصل لهدفي في موعده؟','وش وضعي المالي؟','كم أقدر أدخر شهريًا؟','هل زكاتي واجبة؟'];
+}
+function localAdvisorReply(msg){
+  const m=(msg||'').trim();
+  const has=(arr)=>arr.some(k=>m.includes(k));
+  const c=calcProfile(state.profile);
+
+  if(!state.profile){
+    return 'ما عندي بياناتك المالية بعد، فما أقدر أعطيك أرقامًا دقيقة. روح لصفحة "بياناتي المالية" وأدخل راتبك ومصاريفك، وبعدها أرد عليك بالتفصيل.';
+  }
+
+  // توزيع الراتب / الميزانية
+  if(has(['وزع','توزيع','ميزانية','قسم راتبي','اصرف'])){
+    const fixedPct=c.income>0?Math.round((c.fixed/c.income)*100):0;
+    const debtPct=c.income>0?Math.round((c.debt/c.income)*100):0;
+    const varPct=c.income>0?Math.round((c.variable/c.income)*100):0;
+    const savePct=c.income>0?Math.round((c.surplus/c.income)*100):0;
+    let advice=`دخلك الشهري ${fmt(c.income)}. حاليًا: ${fixedPct}% مصاريف ثابتة (سكن، فواتير، مواصلات)`+
+      (c.debt>0?`، ${debtPct}% أقساط`:'')+`، ${varPct}% مصاريف متغيرة، ويتبقى لك ${savePct}% فائض (${fmt(c.surplus)}).`;
+    if(savePct<20) advice+=' نسبة ادخارك أقل من المعدل الصحي (20%) — لو قدرت تقلّص المصاريف المتغيرة شوي، فرق كبير على المدى الطويل.';
+    else advice+=' هذي نسبة ادخار ممتازة — استمر عليها!';
+    return advice;
+  }
+
+  // الأهداف
+  if(has(['هدف','أهدافي','هدفي','احقق','اوصل','متى بوصل','خطتي'])){
+    if(!state.goals.length) return 'ما عندك أهداف مسجلة بعد. روح لصفحة "أهدافي" وأضف أول هدف — أقولك فورًا كم تحتاج تدخر شهريًا وهل هو واقعي.';
+    const sorted=[...state.goals].sort((a,b)=>monthsFromNow(a.date)-monthsFromNow(b.date));
+    const g=sorted[0];
+    const need=goalMonthlyNeed(g);
+    const months=monthsFromNow(g.date);
+    if(c.surplus<=0) return `أقرب هدف لك "${g.title}" — تحتاج تدخر ${fmt(need)} شهريًا خلال ${months} شهر. لكن وضعك الحالي عندك عجز شهري (${fmt(Math.abs(c.surplus))})، فلازم نراجع مصاريفك أول قبل التخطيط للهدف.`;
+    if(need<=c.surplus) return `أقرب هدف لك "${g.title}" — تحتاج ${fmt(need)} شهريًا، وفائضك ${fmt(c.surplus)}. أنت على المسار الصحيح وبتوصله في موعده بإذن الله. 🎯`;
+    const monthsNeeded=Math.ceil(((g.target||0)-(g.saved||0))/c.surplus);
+    return `أقرب هدف لك "${g.title}" يحتاج ${fmt(need)} شهريًا، لكن فائضك الحالي ${fmt(c.surplus)} — يعني تحتاج تقريبًا ${monthsNeeded} شهر بدل ${months}. جرّب صفحة "الحاسبة المستقبلية" وشغّل محاكي "ماذا لو" لتشوف كيف تسرّع وصولك.`;
+  }
+
+  // الوضع المالي العام
+  if(has(['وضعي','حالتي المالية','كيف حالي','وضعي المالي'])){
+    let s=`دخلك ${fmt(c.income)}، مصاريفك ${fmt(c.expenses)}، فائضك الشهري ${fmt(c.surplus)} (${c.rate.toFixed(0)}% من دخلك).`;
+    if(state.banks.length) s+=` رصيد حساباتك المربوطة ${fmt(bankTotals())}.`;
+    if(state.goals.length) s+=` عندك ${state.goals.length} ${state.goals.length===1?'هدف':'أهداف'} مسجّلة.`;
+    if(c.surplus<0) s+=' تنبيه: مصاريفك تتجاوز دخلك حاليًا — هذا يحتاج مراجعة عاجلة.';
+    else if(c.rate<10) s+=' فائضك ضعيف نسبيًا، حاول تراجع المصاريف المتغيرة.';
+    else if(c.rate>=30) s+=' وضعك المالي قوي جدًا — استمر!';
+    return s;
+  }
+
+  // الادخار / الاستثمار / الفائض
+  if(has(['ادخار','مدخرات','استثمار','فائض','اقدر ادخر'])){
+    const pool=totalPool();
+    let s=c.surplus>0?`تقدر تدخر ${fmt(c.surplus)} شهريًا بناءً على وضعك الحالي.`:'مصاريفك الحالية تلتهم كل دخلك تقريبًا — ما فيه فائض للادخار حاليًا.';
+    if(pool>0) s+=` ومحفظتك الحالية (ادخار + استثمار) ${fmt(pool)}.`;
+    return s;
+  }
+
+  // الديون / التمويل
+  if(has(['دين','ديون','قرض','قروض','تمويل','قسط','أقساط','استقطاع'])){
+    if(c.debt<=0) return 'ما عليك أي أقساط أو التزامات مسجّلة حاليًا — وضعك خالٍ من الدَّين، وهذا ممتاز.';
+    const ratio=c.income>0?(c.debt/c.income*100):0;
+    return `التزاماتك الشهرية الحالية ${fmt(c.debt)}، أي ${ratio.toFixed(0)}% من دخلك. الحد الآمن عادة ٣٣٪ للتمويل الشخصي. ${ratio<33?'أنت ضمن الحد الآمن.':'أنت قريب من الحد أو تجاوزته — كن حذرًا من أي التزام جديد.'}`;
+  }
+
+  // الزكاة
+  if(has(['زكاة','زكاتي'])){
+    if(!state.banks.length) return 'اربط حسابك البنكي من صفحة "حسابي" أول، وبعدها حاسبة الزكاة تحسب لك المستحق تلقائيًا من أرصدتك.';
+    const wealth=bankTotals()+((state.profile&&state.profile.savings)||0);
+    const nisab=nisabValue();
+    if(wealth>=nisab) return `بناءً على أرصدتك المربوطة (${fmt(wealth)})، وعاؤك تجاوز النصاب (${fmt(nisab)})، فعليك زكاة تقديرية ${fmt(wealth*0.025)}. راجع صفحة "حاسبة الزكاة" للتفاصيل الدقيقة.`;
+    return `أرصدتك الحالية (${fmt(wealth)}) أقل من النصاب (${fmt(nisab)})، فلا زكاة عليك حاليًا حسب هذا الحساب التقديري.`;
+  }
+
+  // شكر / تحية
+  if(has(['شكرا','يعطيك العافية','تسلم','شكراً'])) return 'العفو! تحت أمرك في أي وقت. 🌅';
+  if(has(['مرحبا','هلا','السلام عليكم','هاي'])) return 'هلا فيك! اسألني عن راتبك، أهدافك، أو أي قرار مالي — أرد عليك بأرقامك الفعلية.';
+
+  // افتراضي — ملخص + اقتراح أسئلة
+  return `ما فهمت سؤالك بالضبط، بس هذا ملخص سريع: فائضك الشهري ${fmt(c.surplus)}`+
+    (state.goals.length?` وعندك ${state.goals.length} هدف مسجّل.`:'.')+
+    ' جرّب تسألني: "'+suggestedQuestions()[Math.floor(Math.random()*suggestedQuestions().length)]+'"';
+}
+
 function renderChat(typing){
   const w=document.getElementById('chat-w'); if(!w)return;
-  let h=`<div class="msg msg-a">أهلًا! أنا مستشارك في فجر. اسألني عن ميزانيتك أو أهدافك أو أي قرار مالي.</div>`;
+  let h=`<div class="msg msg-a">أهلًا! أنا مستشارك في فجر — أجاوبك من بياناتك مباشرة وبدون اتصال بالإنترنت. اسألني عن راتبك، أهدافك، أو الزكاة.</div>`;
   chatHistory.forEach(m=>h+=`<div class="msg ${m.role==='user'?'msg-u':'msg-a'}">${escapeHtml(m.content)}</div>`);
+  if(!chatHistory.length){
+    h+=`<div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:6px;">`+
+      suggestedQuestions().map(q=>`<button class="chip" onclick="askSuggested('${q.replace(/'/g,"\\'")}')" style="font-size:11.5px;padding:7px 12px;">${q}</button>`).join('')+
+      `</div>`;
+  }
   if(typing)h+=`<div class="msg msg-a"><div class="dots"><span></span><span></span><span></span></div></div>`;
   w.innerHTML=h; w.scrollTop=w.scrollHeight;
 }
+function askSuggested(q){ document.getElementById('chat-in').value=q; sendChat(); }
+
 async function sendChat(){
   const inp=document.getElementById('chat-in'), txt=inp.value.trim(); if(!txt)return;
-  const btn=document.getElementById('chat-send');
-  chatHistory.push({role:'user',content:txt}); inp.value=''; btn.disabled=true; renderChat(true);
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:ADVISOR_SYSTEM_PROMPT+buildAdvisorContext(),
-        messages:chatHistory.map(m=>({role:m.role,content:m.content}))})});
-    const data=await res.json();
-    const reply=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n')||'عذرًا، ما وصلني رد واضح، جرّب مرة ثانية.';
+  chatHistory.push({role:'user',content:txt}); inp.value=''; renderChat(true);
+  // رد فوري من المحرك المحلي — بدون شبكة، بدون تأخير حقيقي (تأخير بصري خفيف فقط للطبيعية)
+  const reply=localAdvisorReply(txt);
+  setTimeout(async()=>{
     chatHistory.push({role:'assistant',content:reply});
-  }catch(e){chatHistory.push({role:'assistant',content:'عذرًا، صار خطأ في الاتصال. حاول مرة ثانية.'});}
-  btn.disabled=false; await sSet('fajr_chat',chatHistory); renderChat(false);
+    await sSet('fajr_chat',chatHistory); renderChat(false);
+  }, 260);
 }
 async function clearChat(){chatHistory=[];await sSet('fajr_chat',chatHistory);renderChat(false);}
 
+/* =========================================================
+   ONBOARDING WIZARD — تدفق استقبال منطقي للمستخدم الجديد
+   ========================================================= */
+let wizStep=0, wizChosenTpl=null;
+
+function wizFillIcons(){
+  const set=(id,html)=>{ const el=document.getElementById(id); if(el) el.innerHTML=html; };
+  set('wiz-ic-sun', BRAND_MARK);
+  set('wiz-ic-data0', ICONS.data);
+  set('wiz-ic-goal0', ICONS.goals);
+  set('wiz-ic-adv0', ICONS.advisor);
+  set('wiz-ic-data1', ICONS.data);
+  set('wiz-ic-goal2', ICONS.goals);
+  set('w-goal-ic', ICONS.goals);
+}
+
+function wizGoTo(step){
+  wizStep=step;
+  document.querySelectorAll('.wiz-step').forEach((el,i)=>el.classList.toggle('active',i===step));
+  document.querySelectorAll('.wiz-dot').forEach((el,i)=>{
+    el.classList.toggle('done',i<step);
+    el.classList.toggle('active',i===step);
+  });
+  if(step===2) wizFillTplGrid();
+}
+
+function wizNext(){ wizGoTo(wizStep+1); }
+
+function wizFillTplGrid(){
+  const grid=document.getElementById('w-tpl-grid'); if(!grid)return;
+  grid.innerHTML=TEMPLATES.slice(0,6).map(t=>`
+    <button class="tpl" style="text-align:center;align-items:center;padding:14px 10px;" onclick="wizPickTpl('${t.id}')">
+      <div class="tpl-ic" style="background:${t.bg};color:${t.color};margin:0 auto 8px;">${iconTag(t.icon)}</div>
+      <h4 style="font-size:13px;">${t.title}</h4>
+    </button>`).join('');
+}
+
+function wizPickTpl(id){
+  wizChosenTpl=id;
+  const t=TEMPLATES.find(x=>x.id===id);
+  if(!t)return;
+  document.getElementById('w-goal-title').textContent=t.title;
+  document.getElementById('w-goal-sub').textContent=t.desc;
+  const ic=document.getElementById('w-goal-ic');
+  if(ic){ ic.style.background=`linear-gradient(135deg,${t.color},${t.bg})`; ic.innerHTML=iconTag(t.icon); }
+  document.getElementById('w-gtarget').value=t.amount||'';
+  document.getElementById('w-gdate').value=defaultDate(t.months||12);
+  wizGoTo(3);
+  updateGoalPreview();
+}
+
+function updateGoalPreview(){
+  const el=document.getElementById('w-goal-preview'); if(!el)return;
+  const target=parseFloat(document.getElementById('w-gtarget').value)||0;
+  const date=document.getElementById('w-gdate').value;
+  const months=monthsFromNow(date);
+  if(!target||!months){el.textContent='';return;}
+  const c=calcProfile(state.profile);
+  const need=target/months;
+  if(c.surplus>0)
+    el.innerHTML=`تحتاج ادخار <b>${fmt(need)}</b> شهريًا — فائضك <b>${fmt(c.surplus)}</b> ${c.surplus>=need?'<span style="color:var(--mint)">✓ يكفي</span>':'<span style="color:var(--rose)">· قريب أو يحتاج تعديل</span>'}`;
+  else
+    el.innerHTML=`تحتاج ادخار <b>${fmt(need)}</b> شهريًا.`;
+}
+
+async function wizSaveProfile(){
+  const salary=parseFloat(document.getElementById('w-salary').value)||0;
+  if(!salary){showToast('أدخل راتبك الأساسي على الأقل');return;}
+  state.profile={
+    salary,
+    extra:  parseFloat(document.getElementById('w-extra').value)||0,
+    housing:parseFloat(document.getElementById('w-housing').value)||0,
+    bills:  parseFloat(document.getElementById('w-bills').value)||0,
+    transport:parseFloat(document.getElementById('w-transport').value)||0,
+    variable:parseFloat(document.getElementById('w-variable').value)||0,
+    debt:0, savings:0, investment:0
+  };
+  await sSet('fajr_profile',state.profile);
+  populateData();
+  wizGoTo(2);
+}
+
+async function wizSaveGoal(){
+  const target=parseFloat(document.getElementById('w-gtarget').value)||0;
+  const date=document.getElementById('w-gdate').value;
+  if(!target){showToast('أدخل المبلغ المستهدف');return;}
+  const t=TEMPLATES.find(x=>x.id===wizChosenTpl)||{icon:'goals',color:'#FF6B4A',bg:'rgba(255,107,74,.14)'};
+  state.goals.push({
+    id:'g_'+Date.now(),
+    templateId:wizChosenTpl||'custom',
+    title:document.getElementById('w-goal-title').textContent||'هدف',
+    icon:t.icon,color:t.color,bg:t.bg,
+    target,saved:0,alloc:0,date,mode:'cash'
+  });
+  await sSet('fajr_goals',state.goals);
+  await wizFinish();
+}
+
+async function wizFinish(){
+  await sSet('fajr_onboarded',true);
+  document.getElementById('wizard-bg').classList.add('hidden');
+  switchView('home');
+  showToast('أهلًا! كل شيء جاهز — ابدأ استكشاف فجر.');
+}
+
+async function wizSkip(){
+  if(wizStep===1&&document.getElementById('w-salary').value){
+    // حفظ ما أدخله قبل التخطي
+    await wizSaveProfile().catch(()=>{});
+  }
+  await wizFinish();
+}
+
+function wizLiveSurplus(){
+  const salary=parseFloat(document.getElementById('w-salary').value)||0;
+  const extra=parseFloat(document.getElementById('w-extra').value)||0;
+  const housing=parseFloat(document.getElementById('w-housing').value)||0;
+  const bills=parseFloat(document.getElementById('w-bills').value)||0;
+  const transport=parseFloat(document.getElementById('w-transport').value)||0;
+  const variable=parseFloat(document.getElementById('w-variable').value)||0;
+  const income=salary+extra;
+  const expenses=housing+bills+transport+variable;
+  const surplus=income-expenses;
+  const el=document.getElementById('w-surplus-hint');
+  if(!el||!income)return;
+  el.innerHTML=income>0
+    ? `دخلك ${fmt(income)} − مصاريفك ${fmt(expenses)} = <b style="color:${surplus>=0?'var(--mint)':'var(--rose)'}">فائض ${fmt(surplus)}</b> شهريًا`
+    : '';
+}
+
+function initWizardListeners(){
+  ['w-salary','w-extra','w-housing','w-bills','w-transport','w-variable'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.addEventListener('input',wizLiveSurplus);
+  });
+  ['w-gtarget','w-gdate'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.addEventListener('input',updateGoalPreview);
+  });
+}
+
+
+
 /* ---------- MORE ---------- */
 function renderMore(){
+  document.getElementById('more-xp').innerHTML=renderXPCard();
   document.getElementById('more-grid').innerHTML=MORE_TILES.map(t=>
     `<button class="more-t" onclick="switchView('${t.id}')"><span class="more-ic" style="background:${t.c}">${iconTag(t.icon)}</span><span>${t.label}</span></button>`
   ).join('');
 }
 
 /* ---------- DATA ---------- */
-const FIELD_MAP={'f-salary':'salary','f-extra':'extra','f-housing':'housing','f-transport':'transport','f-bills':'bills','f-debt':'debt','f-variable':'variable','f-savings':'savings'};
+const FIELD_MAP={'f-salary':'salary','f-extra':'extra','f-housing':'housing','f-transport':'transport','f-bills':'bills','f-debt':'debt','f-variable':'variable','f-savings':'savings','f-investment':'investment'};
 function populateData(){const p=state.profile||{};Object.entries(FIELD_MAP).forEach(([id,k])=>{const e=document.getElementById(id);if(e)e.value=p[k]||'';});renderDataSummary();}
 function readData(){const p={};Object.entries(FIELD_MAP).forEach(([id,k])=>{p[k]=parseFloat(document.getElementById(id).value)||0;});return p;}
 function renderDataSummary(){
@@ -1652,23 +2071,64 @@ function simulatedProfile(){
   }
   let bonus = on.bonus ? 15000 : 0;
   let extraMonths = on.delay ? 6 : 0;
+  let loanMonthly = 0;
   // ---- تخمين المستخدم المخصص ----
   if(on.custom){
-    const incDelta = (cst.incomePct||0)/100;
-    income = income * (1 + incDelta);
-    const expDelta = (cst.expensePct||0)/100;
-    const cut = expenses * expDelta;
-    expenses = expenses - cut;
-    if(cst.extraIncome) income += cst.extraIncome;
-    if(cst.extraMonths) extraMonths += cst.extraMonths;
-    if(cst.oneTime) bonus += cst.oneTime;
+    if(cst.incomeDelta) income += cst.incomeDelta; // ± تغيّر مباشر بالريال (زيادة أو نقص الراتب)
+    if(cst.oneTimeAmount) bonus += cst.oneTimeAmount;
+    if(cst.loanAmount>0 && cst.loanMonths>0){
+      const lp = financePlan(cst.loanAmount, cst.loanMonths);
+      loanMonthly = lp.monthly;
+      debt = debt + loanMonthly;
+      expenses = expenses + loanMonthly;
+    }
   }
   const surplus = income - expenses;
   return {
     income, debt, expenses, surplus,
     rate: income>0 ? (surplus/income*100) : 0,
-    bonus, extraMonths
+    bonus, extraMonths, loanMonthly
   };
+}
+
+/* يبني سلسلة القيمة المستقبلية شهرًا بشهر — يدعم مساهمة شهرية إضافية لمدة محددة،
+   دفعة لمرة واحدة، وتأخير بدء الاستثمار. يُستخدم من renderProjection وapplyCustomSim معًا. */
+function buildProjectionSeries(sim, target, years, baseContrib, annualReturn){
+  const cst = (state.sim && state.sim.custom) ? (state.simCustom||{}) : {};
+  const i = annualReturn/100/12;
+  const totalMonths = Math.max(1, Math.round(years*12));
+  const delay = clamp(cst.delayMonths||0, 0, totalMonths);
+  const extraAmt = cst.monthlyExtra||0;
+  const extraDur = cst.monthlyExtraMonths||0;
+  const loanCut = sim.loanMonthly||0;
+
+  let fv = 0;
+  const monthly = new Array(totalMonths+1);
+  monthly[0]=0;
+  for(let m=1;m<=totalMonths;m++){
+    let contrib = 0;
+    if(m>delay){
+      contrib = Math.max(0, baseContrib - loanCut);
+      if(m-delay<=extraDur) contrib += extraAmt;
+    }
+    fv = fv*(1+i) + contrib;
+    monthly[m]=fv;
+  }
+  // الدفعة لمرة واحدة + مكافأة السيناريوهات الجاهزة — تُضاف الآن وتتراكم عوائدها كامل المدة
+  const lump = (sim.bonus||0);
+  if(lump>0){
+    for(let m=0;m<=totalMonths;m++){
+      monthly[m] += lump*Math.pow(1+i, Math.max(0,m));
+    }
+  }
+  const pts=[]; const steps=Math.max(1,Math.ceil(years));
+  for(let y=0;y<=steps;y++){
+    const yy=Math.min(y,years);
+    const n=Math.min(Math.round(yy*12), totalMonths);
+    pts.push({y:yy, fv:monthly[n], required: years>0?target*(yy/years):0});
+  }
+  const finalFV = monthly[totalMonths];
+  return {pts, finalFV};
 }
 
 function nisabValue(){
@@ -1698,8 +2158,9 @@ function buildAdvisorContext(){
   }
   if(state.goals.length){
     ctx += 'أهدافه الحالية:\n' + state.goals.map(g=>
-      `- ${g.title}: الهدف ${fmt(g.target)}، المدخر حاليًا ${fmt(g.saved||0)}، الموعد المستهدف ${g.date||'غير محدد'}`
+      `- ${g.title}: الهدف ${fmt(g.target)}، المخصَّص له من محفظته ${fmt(g.saved||0)}، الموعد المستهدف ${g.date||'غير محدد'}`
     ).join('\n');
+    ctx += `\nإجمالي محفظة الادخار والاستثمار: ${fmt(totalPool())} (منها غير مخصَّص لأي هدف: ${fmt(unallocatedPool())})`;
   } else {
     ctx += 'لم يضف أي أهداف بعد.';
   }
@@ -1770,25 +2231,34 @@ function resetScenarios(){state.sim={};state.simCustom={};sSet('fajr_sim',state.
 /* يعيد حساب المخطط والنتائج دون إعادة رسم حقول الإدخال (حتى لا يفقد المستخدم تركيز الحقل أثناء الكتابة) */
 function applyCustomSim(){
   const sel=document.getElementById('p-goal');
-  const sim=simulatedProfile(), goal=state.goals.find(x=>x.id===sel.value)||null;
+  const sim=simulatedProfile();
   const target=parseFloat(document.getElementById('p-target').value)||0;
   const yrsIn=clamp(parseInt(document.getElementById('p-years').value)||1,1,40);
   const years=yrsIn+(sim.extraMonths/12);
   const contrib=parseFloat(document.getElementById('p-contrib').value)||0;
   const ret=parseFloat(document.getElementById('p-ret').value)||0;
-  const i=ret/100/12, tm=Math.round(years*12), pts=[], steps=Math.max(1,Math.ceil(years));
-  for(let y=0;y<=steps;y++){const n=Math.min(y*12,tm);
-    let fv=(i===0)?contrib*n:contrib*((Math.pow(1+i,n)-1)/i);
-    fv+=sim.bonus>0&&n>0?sim.bonus*(i===0?1:Math.pow(1+i,Math.max(0,n-1))):0;
-    pts.push({y:Math.min(y,years),fv,required:years>0?target*(Math.min(y,years)/years):0});}
-  const finalFV=pts[pts.length-1].fv, gap=target-finalFV, pg=target>0?clamp((finalFV/target)*100,0,999):0;
+  const {pts,finalFV}=buildProjectionSeries(sim,target,years,contrib,ret);
+  const gap=target-finalFV, pg=target>0?clamp((finalFV/target)*100,0,999):0;
   const base=calcProfile(state.profile);
-  document.getElementById('sim-effect').innerHTML=`<div class="tip">${ICONS.bulb}<span>بالمحاكاة: دخلك ${fmt(sim.income)} (كان ${fmt(base.income)}) · فائضك ${fmt(sim.surplus)} (كان ${fmt(base.surplus)})${sim.extraMonths?` · ${sim.extraMonths>0?'+':''}${sim.extraMonths} أشهر`:''}${sim.bonus?` · دفعة ${fmt(sim.bonus)}`:''}.</span></div>`;
+  const cst=state.simCustom||{};
+  let effect=`دخلك ${fmt(sim.income)} (كان ${fmt(base.income)}) · فائضك ${fmt(sim.surplus)} (كان ${fmt(base.surplus)})`;
+  if(cst.monthlyExtra) effect+=` · +${fmt(cst.monthlyExtra)}/شهر لـ${cst.monthlyExtraMonths||0} شهر في ${cst.monthlyExtraTarget==='investment'?'الاستثمار':'الادخار'}`;
+  if(cst.oneTimeAmount) effect+=` · دفعة ${fmt(cst.oneTimeAmount)} في ${cst.oneTimeTarget==='investment'?'الاستثمار':'الادخار'}`;
+  if(sim.loanMonthly) effect+=` · قسط قرض جديد ${fmt(sim.loanMonthly)} شهريًا`;
+  if(cst.delayMonths) effect+=` · تأخير بدء الاستثمار ${cst.delayMonths} شهر`;
+  document.getElementById('sim-effect').innerHTML=`<div class="tip">${ICONS.bulb}<span>بالمحاكاة: ${effect}.</span></div>`;
   document.getElementById('p-out').innerHTML=`<div class="grid g2" style="margin-bottom:6px;">
     <div class="stat" style="padding:12px 0;"><div class="stat-l">المتوقع بعد ${years.toFixed(1)} سنة</div><div class="stat-v gold">${fmt(finalFV).replace(' ريال','')}</div></div>
     <div class="stat" style="padding:12px 0;"><div class="stat-l">${gap>0?'العجز':'الفائض'} عن الهدف</div><div class="stat-v ${gap>0?'down':'up'}">${fmt(Math.abs(gap)).replace(' ريال','')}</div></div></div>
     <div style="font-size:12px;color:var(--text-2);">تحقيق الهدف بالادخار: <b style="color:var(--text)">${Math.round(pg)}%</b></div>`;
   drawChart(pts,Math.max(target,finalFV));
+  if(sim.loanMonthly>0){
+    const goal=state.goals.find(x=>x.id===sel.value)||null;
+    const ld=dbrCheck(sim.loanMonthly, goal);
+    const box=document.getElementById('finance-box');
+    if(box) box.innerHTML=`<div class="tip ${ld.safe?'':'warn'}">${ld.safe?ICONS.shield2:ICONS.alert}
+      <span>القرض الجديد يضيف قسطًا شهريًا ${fmt(sim.loanMonthly)} — نسبة الاستقطاع ${ld.ratio.toFixed(1)}% من حد ${ld.limit}%${ld.isMortgage?' (عقاري)':''}. ${ld.safe?'ضمن حدود ساما.':'يتجاوز الحد الآمن.'}</span></div>`;
+  }
 }
 function populateProjSelect(){
   const sel=document.getElementById('p-goal');
@@ -1808,19 +2278,17 @@ function loadProjDefaults(gid){
 function renderProjection(){
   const sel=document.getElementById('p-goal');
   if(!sel.options.length){populateProjSelect();return;}
-  const sim=simulatedProfile(), goal=state.goals.find(x=>x.id===sel.value)||null;
+  const sim=simulatedProfile();
+  const goal=state.goals.find(x=>x.id===sel.value)||null;
   const target=parseFloat(document.getElementById('p-target').value)||0;
   const yrsIn=clamp(parseInt(document.getElementById('p-years').value)||1,1,40);
   const years=yrsIn+(sim.extraMonths/12);
+  const tm=Math.max(1,Math.round(years*12));
   const contrib=parseFloat(document.getElementById('p-contrib').value)||0;
   const ret=parseFloat(document.getElementById('p-ret').value)||0;
   document.getElementById('p-ret-v').textContent=ret+'%';
-  const i=ret/100/12, tm=Math.round(years*12), pts=[], steps=Math.max(1,Math.ceil(years));
-  for(let y=0;y<=steps;y++){const n=Math.min(y*12,tm);
-    let fv=(i===0)?contrib*n:contrib*((Math.pow(1+i,n)-1)/i);
-    fv+=sim.bonus>0&&n>0?sim.bonus*(i===0?1:Math.pow(1+i,Math.max(0,n-1))):0;
-    pts.push({y:Math.min(y,years),fv,required:years>0?target*(Math.min(y,years)/years):0});}
-  const finalFV=pts[pts.length-1].fv, gap=target-finalFV, pg=target>0?clamp((finalFV/target)*100,0,999):0;
+  const {pts,finalFV}=buildProjectionSeries(sim,target,years,contrib,ret);
+  const gap=target-finalFV, pg=target>0?clamp((finalFV/target)*100,0,999):0;
 
   // whatif chips (presets)
   const custOn = state.sim && state.sim.custom;
@@ -1832,12 +2300,37 @@ function renderProjection(){
   `<button class="wchip ${custOn?'on':''}" onclick="toggleScenario('custom')"><span class="e">✏️</span>
      <span class="m"><b>تخمين مخصص — حدده بنفسك</b><i>أدخل أرقامك أنت</i></span><span class="ck">${ICONS.check}</span></button>`+
   (custOn?`<div class="card card-2" style="margin-top:2px;">
-     <div class="fg">
-       <div class="fld" style="margin-bottom:8px;"><label>تغيّر الراتب (%)</label><div class="wrap"><input type="number" id="c-inc" value="${cst.incomePct||''}" placeholder="مثال: 20"><span class="sfx">%</span></div></div>
-       <div class="fld" style="margin-bottom:8px;"><label>خفض المصاريف (%)</label><div class="wrap"><input type="number" id="c-exp" value="${cst.expensePct||''}" placeholder="مثال: 10"><span class="sfx">%</span></div></div>
-       <div class="fld" style="margin-bottom:8px;"><label>دخل شهري إضافي</label><div class="wrap"><input type="number" id="c-extra" value="${cst.extraIncome||''}" placeholder="0"><span class="sfx">ريال</span></div></div>
-       <div class="fld" style="margin-bottom:8px;"><label>دفعة لمرة واحدة</label><div class="wrap"><input type="number" id="c-once" value="${cst.oneTime||''}" placeholder="0"><span class="sfx">ريال</span></div></div>
-       <div class="fld" style="margin-bottom:0;"><label>تعديل المدة (أشهر ±)</label><div class="wrap"><input type="number" id="c-months" value="${cst.extraMonths||''}" placeholder="مثال: 6"><span class="sfx">شهر</span></div></div>
+     <div style="font-size:11.5px;color:var(--text-2);font-weight:700;margin-bottom:9px;">زيادة الادخار أو الاستثمار</div>
+     <div class="fg" style="margin-bottom:12px;">
+       <div class="fld" style="margin-bottom:0;"><label>مبلغ شهري إضافي</label><div class="wrap"><input type="number" id="c-mextra" value="${cst.monthlyExtra||''}" placeholder="مثال: 1000"><span class="sfx">ريال</span></div></div>
+       <div class="fld" style="margin-bottom:0;"><label>لمدة</label><select id="c-mdur">
+         <option value="2" ${cst.monthlyExtraMonths==2?'selected':''}>شهرين</option>
+         <option value="3" ${cst.monthlyExtraMonths==3?'selected':''}>3 أشهر</option>
+         <option value="6" ${(cst.monthlyExtraMonths==6||!cst.monthlyExtraMonths)?'selected':''}>6 أشهر</option>
+         <option value="12" ${cst.monthlyExtraMonths==12?'selected':''}>سنة</option>
+         <option value="24" ${cst.monthlyExtraMonths==24?'selected':''}>سنتين</option>
+       </select></div>
+     </div>
+     <div class="fld" style="margin-bottom:14px;"><label>تُضاف إلى</label><select id="c-mtarget">
+       <option value="savings" ${cst.monthlyExtraTarget!=='investment'?'selected':''}>حساب الادخار</option>
+       <option value="investment" ${cst.monthlyExtraTarget==='investment'?'selected':''}>الحساب الاستثماري</option>
+     </select></div>
+
+     <div style="font-size:11.5px;color:var(--text-2);font-weight:700;margin-bottom:9px;">أو دفعة لمرة واحدة</div>
+     <div class="fg" style="margin-bottom:14px;">
+       <div class="fld" style="margin-bottom:0;"><label>المبلغ</label><div class="wrap"><input type="number" id="c-once" value="${cst.oneTimeAmount||''}" placeholder="0"><span class="sfx">ريال</span></div></div>
+       <div class="fld" style="margin-bottom:0;"><label>تُضاف إلى</label><select id="c-otarget">
+         <option value="savings" ${cst.oneTimeTarget!=='investment'?'selected':''}>الادخار</option>
+         <option value="investment" ${cst.oneTimeTarget==='investment'?'selected':''}>الاستثمار</option>
+       </select></div>
+     </div>
+
+     <div style="font-size:11.5px;color:var(--text-2);font-weight:700;margin-bottom:9px;">تغيّرات أخرى</div>
+     <div class="fg" style="margin-bottom:8px;">
+       <div class="fld" style="margin-bottom:8px;"><label>تغيّر الراتب الشهري (± ريال)</label><div class="wrap"><input type="number" id="c-incd" value="${cst.incomeDelta||''}" placeholder="مثال: -2000 أو 1500"><span class="sfx">ريال</span></div></div>
+       <div class="fld" style="margin-bottom:8px;"><label>تأخير بدء الاستثمار</label><div class="wrap"><input type="number" id="c-delay" value="${cst.delayMonths||''}" placeholder="0"><span class="sfx">شهر</span></div></div>
+       <div class="fld" style="margin-bottom:0;"><label>قرض/تمويل جديد</label><div class="wrap"><input type="number" id="c-loanamt" value="${cst.loanAmount||''}" placeholder="المبلغ"><span class="sfx">ريال</span></div></div>
+       <div class="fld" style="margin-bottom:0;"><label>مدة سداد القرض</label><div class="wrap"><input type="number" id="c-loanmo" value="${cst.loanMonths||''}" placeholder="بالأشهر"><span class="sfx">شهر</span></div></div>
      </div>
    </div>`:'')+
   (Object.values(state.sim||{}).some(Boolean)?`<button class="wchip" onclick="resetScenarios()" style="justify-content:center;border-style:dashed;"><span class="m" style="text-align:center;">↺ إلغاء المحاكاة</span></button>`:'');
@@ -1845,17 +2338,26 @@ function renderProjection(){
   // bind custom inputs
   if(custOn){
     const upd=()=>{ state.simCustom={
-      incomePct:parseFloat(document.getElementById('c-inc').value)||0,
-      expensePct:parseFloat(document.getElementById('c-exp').value)||0,
-      extraIncome:parseFloat(document.getElementById('c-extra').value)||0,
-      oneTime:parseFloat(document.getElementById('c-once').value)||0,
-      extraMonths:parseFloat(document.getElementById('c-months').value)||0
+      monthlyExtra:parseFloat(document.getElementById('c-mextra').value)||0,
+      monthlyExtraMonths:parseInt(document.getElementById('c-mdur').value)||0,
+      monthlyExtraTarget:document.getElementById('c-mtarget').value,
+      oneTimeAmount:parseFloat(document.getElementById('c-once').value)||0,
+      oneTimeTarget:document.getElementById('c-otarget').value,
+      incomeDelta:parseFloat(document.getElementById('c-incd').value)||0,
+      delayMonths:parseFloat(document.getElementById('c-delay').value)||0,
+      loanAmount:parseFloat(document.getElementById('c-loanamt').value)||0,
+      loanMonths:parseFloat(document.getElementById('c-loanmo').value)||0
     }; sSet('fajr_sim_custom',state.simCustom); applyCustomSim(); };
-    ['c-inc','c-exp','c-extra','c-once','c-months'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',upd);});
+    ['c-mextra','c-mdur','c-mtarget','c-once','c-otarget','c-incd','c-delay','c-loanamt','c-loanmo'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',upd);});
   }
 
   const base=calcProfile(state.profile), anyOn=Object.values(state.sim||{}).some(Boolean);
-  document.getElementById('sim-effect').innerHTML=anyOn?`<div class="tip">${ICONS.bulb}<span>بالمحاكاة: دخلك ${fmt(sim.income)} (كان ${fmt(base.income)}) · فائضك ${fmt(sim.surplus)} (كان ${fmt(base.surplus)})${sim.extraMonths?` · +${sim.extraMonths} أشهر`:''}${sim.bonus?` · دفعة ${fmt(sim.bonus)}`:''}.</span></div>`:'';
+  let effect=`دخلك ${fmt(sim.income)} (كان ${fmt(base.income)}) · فائضك ${fmt(sim.surplus)} (كان ${fmt(base.surplus)})`;
+  if(cst.monthlyExtra) effect+=` · +${fmt(cst.monthlyExtra)}/شهر لـ${cst.monthlyExtraMonths||0} شهر في ${cst.monthlyExtraTarget==='investment'?'الاستثمار':'الادخار'}`;
+  if(cst.oneTimeAmount) effect+=` · دفعة ${fmt(cst.oneTimeAmount)} في ${cst.oneTimeTarget==='investment'?'الاستثمار':'الادخار'}`;
+  if(sim.loanMonthly) effect+=` · قسط قرض جديد ${fmt(sim.loanMonthly)} شهريًا`;
+  if(cst.delayMonths) effect+=` · تأخير بدء الاستثمار ${cst.delayMonths} شهر`;
+  document.getElementById('sim-effect').innerHTML=anyOn?`<div class="tip">${ICONS.bulb}<span>بالمحاكاة: ${effect}.</span></div>`:'';
 
   document.getElementById('p-out').innerHTML=`<div class="grid g2" style="margin-bottom:6px;">
     <div class="stat" style="padding:12px 0;"><div class="stat-l">المتوقع بعد ${years.toFixed(1)} سنة</div><div class="stat-v gold">${fmt(finalFV).replace(' ريال','')}</div></div>
@@ -1864,9 +2366,15 @@ function renderProjection(){
 
   // finance box — de-emphasized: only a subtle collapsed option
   const box=document.getElementById('finance-box');
+  let loanNote='';
+  if(sim.loanMonthly>0){
+    const ld=dbrCheck(sim.loanMonthly, goal);
+    loanNote=`<div class="tip ${ld.safe?'':'warn'}" style="margin-bottom:14px;">${ld.safe?ICONS.shield2:ICONS.alert}
+      <span>القرض الجديد اللي جرّبته يضيف قسطًا شهريًا ${fmt(sim.loanMonthly)} — نسبة الاستقطاع تصير ${ld.ratio.toFixed(1)}% من حد ${ld.limit}%${ld.isMortgage?' (عقاري)':''}. ${ld.safe?'ضمن حدود ساما.':'يتجاوز الحد الآمن — راجع المبلغ أو المدة.'}</span></div>`;
+  }
   if(gap>0 && state.profile){
     const plan=financePlan(gap,tm), d=dbrCheck(plan.monthly,goal);
-    box.innerHTML=`<div class="sec"><h2 style="font-size:14px;">إن احتجت إكمال الفجوة</h2></div>
+    box.innerHTML=loanNote+`<div class="sec"><h2 style="font-size:14px;">إن احتجت إكمال الفجوة</h2></div>
       <div class="card">
         <div class="tip"style="margin-top:0;margin-bottom:14px;">${ICONS.bulb}<span>الأفضل دائمًا الوصول بالادخار. لو أجّلت الهدف أو رفعت مساهمتك الشهرية، توصل بدون أي تكلفة. التمويل خيار أخير — اطّلع عليه بحذر.</span></div>
         <button class="btn btn-g btn-b" onclick="this.nextElementSibling.style.display='block';this.style.display='none'">أرِني تفاصيل التمويل ونسبة الاستقطاع</button>
@@ -1880,8 +2388,8 @@ function renderProjection(){
         </div>
       </div>`;
   } else if(target>0 && state.profile){
-    box.innerHTML=`<div class="tip" style="margin-top:14px;">${ICONS.shield2}<span>ادخارك يكفي للوصول لهدفك نقدًا — بدون أي تمويل أو تكلفة. هذا أفضل مسار.</span></div>`;
-  } else box.innerHTML='';
+    box.innerHTML=loanNote+`<div class="tip" style="margin-top:14px;">${ICONS.shield2}<span>ادخارك يكفي للوصول لهدفك نقدًا — بدون أي تمويل أو تكلفة. هذا أفضل مسار.</span></div>`;
+  } else box.innerHTML=loanNote;
 
   drawChart(pts,Math.max(target,finalFV));
 }
@@ -2017,16 +2525,6 @@ function renderOffers(){
 }
 function contactProvider(){showToast('تم إرسال طلبك — سيتواصل معك المزود قريبًا');}
 
-/* ---------- WELCOME ---------- */
-function openWelcome(){
-  document.getElementById('welcome-list').innerHTML=APP_SERVICES.map(s=>
-    `<div style="display:flex;gap:12px;align-items:flex-start;">
-      <div style="width:36px;height:36px;border-radius:11px;background:var(--card-2);display:flex;align-items:center;justify-content:center;color:var(--amber);flex:none;">${iconTag(s.icon)}</div>
-      <div><div style="font-size:13.5px;font-weight:700;">${s.t}</div><div style="font-size:11.5px;color:var(--text-2);">${s.d}</div></div></div>`
-  ).join('');
-  openSheet('sheet-welcome');
-}
-
 /* ---------- COACH TOUR ---------- */
 let tourIdx=0;
 function startTour(){
@@ -2066,12 +2564,13 @@ async function init(){
     sGet('fajr_onboarded'),sGet('fajr_banks'),sGet('fajr_sim'),sGet('fajr_sim_used'),sGet('fajr_tour'),sGet('fajr_theme')]);
   currentTheme = (theme==='green')?'green':'sunrise';
   document.documentElement.setAttribute('data-theme', currentTheme);
+  const _mt=document.getElementById('meta-theme'); if(_mt)_mt.setAttribute('content', currentTheme==='green'?'#F4F8F5':'#0A0912');
   state.simCustom = (await sGet('fajr_sim_custom'))||{};
   state.profile=profile||null; state.goals=goals||[]; state.zakat=zakat||null;
   chatHistory=chat||[]; state.banks=banks||[]; state.sim=sim||{}; state.simUsed=!!simUsed;
 
   populateData();
-  Object.keys(FIELD_MAP).forEach(id=>document.getElementById(id).addEventListener('input',renderDataSummary));
+  Object.keys(FIELD_MAP).forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener('input',renderDataSummary); });
   document.getElementById('save-profile').addEventListener('click',saveProfile);
   document.getElementById('g-save').addEventListener('click',saveGoal);
   document.getElementById('t-type').addEventListener('change',fillTxCats);
@@ -2079,27 +2578,133 @@ async function init(){
   document.getElementById('chat-send').addEventListener('click',sendChat);
   document.getElementById('chat-in').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendChat();}});
   document.getElementById('clear-chat').addEventListener('click',clearChat);
-  ['p-target','p-years','p-contrib','p-ret'].forEach(id=>document.getElementById(id).addEventListener('input',renderProjection));
-  document.getElementById('welcome-start').addEventListener('click',()=>{closeSheet('sheet-welcome');startTour();});
+  ['p-target','p-years','p-contrib','p-ret'].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener('input',renderProjection); });
   document.getElementById('coach-next').addEventListener('click',nextTour);
   document.getElementById('coach-skip').addEventListener('click',endTour);
   document.getElementById('more-tour').addEventListener('click',startTour);
-  document.getElementById('more-about').addEventListener('click',openWelcome);
+  document.getElementById('more-about').addEventListener('click',()=>wizGoTo(0)||document.getElementById('wizard-bg').classList.remove('hidden'));
   document.getElementById('more-reset').addEventListener('click',async()=>{
     if(confirm('حذف كل بياناتك وأهدافك وحساباتك ومحادثاتك نهائيًا؟')){
       for(const k of ['fajr_profile','fajr_goals','fajr_zakat','fajr_chat','fajr_banks','fajr_sim','fajr_sim_used'])await sDel(k);
       state.profile=null;state.goals=[];state.zakat=null;chatHistory=[];state.banks=[];state.sim={};state.simUsed=false;activeBankId=null;
-      populateData();switchView('home');showToast('تم حذف كل البيانات');}
+      populateData();switchView('home');showToast('تم حذف كل البيانات');
+      // show wizard again
+      await sDel('fajr_onboarded'); document.getElementById('wizard-bg').classList.remove('hidden'); wizGoTo(0);
+    }
   });
-  // sheet backdrop click to close
   document.querySelectorAll('.sheet-bg').forEach(bg=>bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('open');}));
-  // topbar shadow on scroll
   window.addEventListener('scroll',()=>document.getElementById('topbar').classList.toggle('scrolled',window.scrollY>4));
 
-  switchView('home');
-  if(!onboarded){await sSet('fajr_onboarded',true);openWelcome();}
+  initWizardListeners();
+  wizFillIcons();
+
+  if(!onboarded){
+    // show the wizard behind the app
+    switchView('home');
+    document.getElementById('wizard-bg').classList.remove('hidden');
+    wizGoTo(0);
+  } else {
+    document.getElementById('wizard-bg').classList.add('hidden');
+    switchView('home');
+  }
 }
+/* =======================================================
+   PWA — يجعل الملف الواحد قابلاً للتثبيت كتطبيق على كل الأجهزة
+   ======================================================= */
+/* أيقونة التطبيق (شمس تشرق) — تُولّد من SVG إلى صورة */
+function fajrIconSVG(size){
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 512 512">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1A1030"/><stop offset="100%" stop-color="#3A1E52"/></linearGradient>
+      <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD37E"/><stop offset="100%" stop-color="#FF6B4A"/></linearGradient>
+    </defs>
+    <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+    <circle cx="256" cy="330" r="118" fill="url(#sun)"/>
+    <rect x="60" y="330" width="392" height="120" fill="#1A1030"/>
+    <rect x="60" y="322" width="392" height="14" rx="7" fill="#FFB547"/>
+    <g stroke="#FFB547" stroke-width="10" stroke-linecap="round" opacity="0.9">
+      <line x1="256" y1="150" x2="256" y2="185"/>
+      <line x1="146" y1="196" x2="168" y2="220"/>
+      <line x1="366" y1="196" x2="344" y2="220"/>
+    </g>
+  </svg>`;
+}
+async function svgToPngDataURL(svg, size){
+  return new Promise(res=>{
+    const blob=new Blob([svg],{type:'image/svg+xml'});
+    const url=URL.createObjectURL(blob);
+    const img=new Image();
+    img.onload=()=>{
+      const cv=document.createElement('canvas'); cv.width=size; cv.height=size;
+      cv.getContext('2d').drawImage(img,0,0,size,size);
+      URL.revokeObjectURL(url);
+      try{ res(cv.toDataURL('image/png')); }catch(e){ res(url); }
+    };
+    img.onerror=()=>res(url);
+    img.src=url;
+  });
+}
+let deferredInstall=null;
+async function setupPWA(){
+  try{
+    const icon192=await svgToPngDataURL(fajrIconSVG(192),192);
+    const icon512=await svgToPngDataURL(fajrIconSVG(512),512);
+    document.getElementById('apple-icon').href=icon192;
+    document.getElementById('favicon').href=icon192;
+
+    const manifest={
+      name:'فجر — مديرك المالي الرقمي', short_name:'فجر',
+      description:'يجمع حساباتك، يفهم وضعك، ويخطط معك لأهدافك المالية.',
+      lang:'ar', dir:'rtl', start_url:'.', scope:'.',
+      display:'standalone', orientation:'portrait',
+      background_color:'#0A0912', theme_color:'#0A0912',
+      icons:[
+        {src:icon192, sizes:'192x192', type:'image/png', purpose:'any'},
+        {src:icon512, sizes:'512x512', type:'image/png', purpose:'any'},
+        {src:icon512, sizes:'512x512', type:'image/png', purpose:'maskable'}
+      ]
+    };
+    const mBlob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+    document.getElementById('manifest-link').href=URL.createObjectURL(mBlob);
+
+    /* service worker — يخزّن الصفحة للعمل دون اتصال */
+    if('serviceWorker' in navigator){
+      const swCode=`
+        const C='fajr-v1';
+        self.addEventListener('install',e=>{self.skipWaiting();});
+        self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim());});
+        self.addEventListener('fetch',e=>{
+          if(e.request.method!=='GET')return;
+          e.respondWith(
+            caches.open(C).then(async cache=>{
+              const cached=await cache.match(e.request);
+              const net=fetch(e.request).then(r=>{if(r&&r.status===200)cache.put(e.request,r.clone());return r;}).catch(()=>cached);
+              return cached||net;
+            })
+          );
+        });`;
+      const swURL=URL.createObjectURL(new Blob([swCode],{type:'text/javascript'}));
+      navigator.serviceWorker.register(swURL).catch(()=>{});
+    }
+  }catch(e){ /* PWA اختياري — لا يعطّل التطبيق */ }
+
+  /* زر التثبيت يظهر عند توفر الإمكانية */
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault(); deferredInstall=e;
+    const b=document.getElementById('install-fab'); if(b)b.style.display='flex';
+  });
+  window.addEventListener('appinstalled',()=>{const b=document.getElementById('install-fab');if(b)b.style.display='none';deferredInstall=null;});
+}
+async function doInstall(){
+  if(deferredInstall){ deferredInstall.prompt(); const {outcome}=await deferredInstall.userChoice; deferredInstall=null; if(outcome==='accepted'){const b=document.getElementById('install-fab');if(b)b.style.display='none';} }
+  else{
+    const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    showToast(ios?'للتثبيت: زر المشاركة ← أضف إلى الشاشة الرئيسية':'للتثبيت: قائمة المتصفح ← تثبيت التطبيق / أضف إلى الشاشة');
+  }
+}
+
 init();
+setupPWA();
 
 </script>
 </body>
