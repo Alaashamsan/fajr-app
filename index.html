@@ -582,6 +582,60 @@
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   .toast svg{width:15px;height:15px;color:var(--mint);}
 
+  /* ================= RESPONSIVE: يتكيّف مع كل حجم شاشة ================= */
+
+  /* هواتف صغيرة جدًا (≤359px) — تضييق الحشو والخطوط بدون كسر التخطيط */
+  @media (max-width:359px){
+    .view{padding:6px 13px 10px;}
+    .topbar{padding-left:13px;padding-right:13px;}
+    .bal-val{font-size:28px;}
+    .wiz-h{font-size:20px;}
+    .page-title,.vhead h1{font-size:19px;}
+    .qa-grid{gap:7px;}
+    .qa-ic{width:37px;height:37px;}
+    .qa-lb{font-size:9.5px;}
+    .stat-v{font-size:16px;}
+    .bnav button{font-size:9px;}
+    .bnav button svg{width:19px;height:19px;}
+  }
+
+  /* أجهزة لوحية وشاشات متوسطة (600–999px) — تستغل المساحة بدل عمود جوال ضيق في المنتصف */
+  @media (min-width:600px) and (max-width:999px){
+    .app{max-width:680px;}
+    .view{padding:10px 26px 14px;}
+    .qa-grid{grid-template-columns:repeat(6,1fr);}
+    .tpl-grid{grid-template-columns:repeat(3,1fr);}
+    .more-grid{grid-template-columns:repeat(3,1fr);}
+    .offers{grid-template-columns:repeat(2,1fr);}
+    .fg{grid-template-columns:repeat(3,1fr);}
+    .g3{grid-template-columns:repeat(3,1fr);}
+  }
+
+  /* شاشات عريضة جدًا (≥1400px) — سقف أكبر شوي بدل فراغ زائد */
+  @media (min-width:1400px){
+    .app{max-width:1180px;}
+    .dsplit{gap:20px;}
+  }
+
+  /* الوضع الأفقي على الجوال (شاشة قصيرة) — تقليص المساحات الرأسية */
+  @media (max-height:480px) and (orientation:landscape){
+    .wizard-bg{padding:12px;align-items:flex-start;overflow-y:auto;}
+    .wizard{padding:14px 0;}
+    .wiz-icon{width:44px;height:44px;margin-bottom:10px;}
+    .wiz-icon svg{width:20px;height:20px;}
+    .wiz-h{font-size:19px;margin-bottom:5px;}
+    .wiz-sub{margin-bottom:16px;font-size:12.5px;}
+    .wiz-progress{margin-bottom:16px;}
+    .chat-w{height:min(38vh,320px);}
+    .balance-in{padding:16px 18px 14px;}
+    .bal-val{font-size:26px;}
+  }
+
+  /* استخدام ارتفاع منظور المتصفح الديناميكي حيث يتوفر (يمنع قفزة الشاشة عند إخفاء/إظهار شريط الجوال) */
+  @supports (height:100dvh){
+    .wizard-bg{min-height:100dvh;}
+  }
+
   /* ================= DESKTOP ================= */
   @media (min-width:1000px){
     .dsplit{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
