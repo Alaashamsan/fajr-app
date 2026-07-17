@@ -526,11 +526,12 @@
   .wizard-bg{
     position:fixed;inset:0;z-index:80;
     background:var(--void);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    padding:20px;
+    display:flex;flex-direction:column;align-items:center;
+    overflow-y:auto;-webkit-overflow-scrolling:touch;
+    padding:20px 20px calc(24px + env(safe-area-inset-bottom));
   }
   .wizard-bg.hidden{display:none;}
-  .wizard{width:100%;max-width:480px;display:flex;flex-direction:column;gap:0;}
+  .wizard{width:100%;max-width:480px;display:flex;flex-direction:column;gap:0;margin:auto 0;}
 
   /* شريط التقدم */
   .wiz-progress{display:flex;gap:6px;justify-content:center;margin-bottom:32px;}
@@ -1392,7 +1393,7 @@ function renderHome(){
       <div class="balance-in">
         <div class="bal-lbl">الرصيد الإجمالي <span class="eye" onclick="this.closest('.balance').classList.toggle('hide');document.getElementById('bal-num').classList.toggle('blur')">${ICONS.eye}</span></div>
         <div class="bal-val" id="bal-num"><span class="cur">﷼</span>${fmt(total).replace(' ريال','')}</div>
-        <button class="bal-pill" onclick="switchView('projection')">${ICONS.chart} عرض وضعي المالي</button>
+        <button class="bal-pill" onclick="switchView('dashboard')">${ICONS.chart} عرض وضعي المالي</button>
       </div>
       <div class="bal-split">
         <div><div class="bs-l">ادخار</div><div class="bs-v">${fmt(savings).replace(' ريال','')}</div></div>
@@ -1960,6 +1961,12 @@ function renderDashboard(){
 
   // ٧. معدل الالتزام (XP)
   html+=`<div class="sec"><h2>معدل التزامك</h2></div>${renderXPCard()}`;
+
+  // متابعة الرحلة: من هنا إلى الحاسبة المستقبلية
+  html+=`<div class="card" style="margin-top:14px;text-align:center;">
+    <div style="font-size:12.5px;color:var(--text-2);margin-bottom:10px;">شفت وضعك الحالي — دورك الآن تشوف وين توصل مستقبلًا.</div>
+    <button class="btn btn-p btn-b" onclick="switchView('projection')">${ICONS.projection} الحاسبة المستقبلية</button>
+  </div>`;
 
   el.innerHTML=html;
 }
